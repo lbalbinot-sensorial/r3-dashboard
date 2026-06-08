@@ -2445,15 +2445,10 @@ const _SB_KEYS=['slog','dc_ac','rq6_s','rq6_h','ret_flash','ret_notes','ret_goal
 const _sbDeb={};
 
 function sbSync(key,val){
-  if(!_sbUser)return;
+  if(!_sbUser||!_sbToken)return;
   clearTimeout(_sbDeb[key]);
-  _sbDeb[key]=setTimeout(async()=>{
-    sbDot('sync');
-    const{error}=await _SB.from('dashboard_data').upsert(
-      {user_id:_sbUser.id,key,value:val,updated_at:new Date().toISOString()},
-      {onConflict:'user_id,key'}
-    );
-    sbDot(error?'err':'ok');
+  _sbDeb[key]=setTimeout(()=>{
+    _sbUpsert(key,val).then(()=>sbDot('ok')).catch(()=>sbDot('err'));
   },900);
 }
 
@@ -2602,13 +2597,12 @@ async function sbDoSignup(){
 }
 
 async function sbLogout(){
-  await _SB.auth.signOut();
-  _sbUser=null;
+  try{await _SB.auth.signOut();}catch(e){}
+  _sbUser=null;_sbToken=null;
   document.getElementById('sb-login-ov').style.display='flex';
   document.getElementById('sb-auth').innerHTML='';
   document.getElementById('sb-dot').textContent='☁';
   document.getElementById('sb-dot').style.color='var(--tx3)';
-  // limpa os inputs da tela de login
   const em=document.getElementById('sb-em');const pw=document.getElementById('sb-pw');
   if(em)em.value='';if(pw)pw.value='';
   const err=document.getElementById('sb-err');if(err)err.style.display='none';
