@@ -2440,7 +2440,7 @@ const _SB=supabase.createClient(
   'https://albnjnlkhlxlynsqwliz.supabase.co',
   'sb_publishable_afJTFxn5ZZcqWnr4KWAD_g_n0LgUkpE'
 );
-let _sbUser=null;
+let _sbUser=null,_sbToken=null;
 const _SB_KEYS=['slog','dc_ac','rq6_s','rq6_h','ret_flash','ret_notes','ret_goals','cal_ev'];
 const _sbDeb={};
 
@@ -2458,11 +2458,17 @@ function sbSync(key,val){
 }
 
 async function _sbUpsert(k,v){
-  const{error}=await _SB.from('dashboard_data').upsert(
-    {user_id:_sbUser.id,key:k,value:v,updated_at:new Date().toISOString()},
-    {onConflict:'user_id,key'}
+  const res=await fetch(
+    'https://albnjnlkhlxlynsqwliz.supabase.co/rest/v1/dashboard_data',
+    {method:'POST',
+     headers:{'apikey':'sb_publishable_afJTFxn5ZZcqWnr4KWAD_g_n0LgUkpE',
+               'Authorization':'Bearer '+_sbToken,
+               'Content-Type':'application/json',
+               'Prefer':'resolution=merge-duplicates'},
+     body:JSON.stringify([{user_id:_sbUser.id,key:k,value:v,updated_at:new Date().toISOString()}])
+    }
   );
-  if(error)throw new Error(k+': '+error.message);
+  if(!res.ok){const t=await res.text();throw new Error(k+': '+t);}
 }
 async function sbLoad(){
   sbDot('sync');
@@ -2627,12 +2633,13 @@ function sbRenderAuth(){
 
 _SB.auth.onAuthStateChange(async(event,session)=>{
   _sbUser=session?.user||null;
+  _sbToken=session?.access_token||null;
   sbRenderAuth();
   if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))await sbLoad();
 });
 
 _SB.auth.getSession().then(({data:{session}})=>{
-  if(session){_sbUser=session.user;sbRenderAuth();sbLoad();}
+  if(session){_sbUser=session.user;_sbToken=session.access_token;sbRenderAuth();sbLoad();}
   else{document.getElementById('sb-login-ov').style.display='flex';sbRenderAuth();}
 });
 </script>
