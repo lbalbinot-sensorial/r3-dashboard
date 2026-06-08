@@ -968,7 +968,7 @@ function buildGrade(){
       if(arr[i]){const tc=arr[i].toLowerCase().includes('bico')||arr[i].toLowerCase().includes('sus')?'tbi':'tob';inner=`<span class="tt ${tc}">${arr[i]}</span>`;}
       CEV.filter(e=>e.dat===ds2&&evSlot(e)===slot).forEach(ev=>{
         const idx=CEV.indexOf(ev);
-        inner+=`<span class="tt" style="background:var(--abg);color:var(--amb);border:1px solid var(--abd);display:flex;align-items:center;gap:2px;justify-content:space-between">${ev.tit.length>13?ev.tit.slice(0,13)+'…':ev.tit}<span onclick="delCEV(${idx})" style="cursor:pointer;opacity:.45;font-size:12px;line-height:1;flex-shrink:0" title="remover">×</span></span>`;
+        inner+=`<span class="tt" style="background:var(--abg);color:var(--amb);border:1px solid var(--abd);display:flex;align-items:center;gap:2px;justify-content:space-between;white-space:normal;text-align:left">${ev.tit}<span onclick="delCEV(${idx})" style="cursor:pointer;opacity:.45;font-size:12px;line-height:1;flex-shrink:0" title="remover">×</span></span>`;
       });
       r.innerHTML+=`<div class="grc${i>=5?' wknd':''}${wk.bico[i]?' bico':''}">${inner}</div>`;
     }
@@ -1166,7 +1166,7 @@ function schedConfirm(){
     if(hi>=0)QH[hi]={...QH[hi],revDate:rv.toISOString()};
     svQ();
   }
-  CEV.push({tit:'Revisão: '+lb,dat,ini:'',fim:'',tipo:'revisao',not:''});
+  CEV.push({tit:'R: '+lb,dat,ini:'',fim:'',tipo:'revisao',not:''});
   svCEV();m.classList.remove('open');
   buildGrade();
   buildVisaoSide();
@@ -1285,7 +1285,7 @@ function buildCal(){
       const dayStr=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
       CEV.filter(e=>e.dat===dayStr).forEach(ev=>{
         const AL='var(--abg)',AC2='var(--amb)';
-        cell.innerHTML+=`<span class="ctag" style="background:${AL};color:${AC2};cursor:pointer" title="${ev.ini||''}${ev.ini&&ev.fim?'–'+ev.fim:''} ${ev.not||''}">${ev.tit.length>12?ev.tit.slice(0,12)+'…':ev.tit}</span>`;
+        cell.innerHTML+=`<span class="ctag" style="background:${AL};color:${AC2};cursor:pointer;white-space:normal;overflow:visible;text-overflow:clip" title="${ev.ini||''}${ev.ini&&ev.fim?'–'+ev.fim:''} ${ev.not||''}">${ev.tit}</span>`;
       });
       grid.appendChild(cell);
     }
