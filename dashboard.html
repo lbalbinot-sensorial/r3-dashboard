@@ -2489,10 +2489,34 @@ async function sbManualSync(){
   const btn=document.getElementById('sync-btn');
   if(!_sbUser){alert('Faça login para sincronizar.');return;}
   if(btn){btn.textContent='↑ …';btn.disabled=true;}
-  sbPushAll();
-  await new Promise(r=>setTimeout(r,1200));
-  if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+  sbDot('sync');
+  const{data,error}=await _SB.from('dashboard_data').select('key,value').eq('user_id',_sbUser.id);
+  if(error){sbDot('err');if(btn){btn.textContent='↑ sync';btn.disabled=false;}return;}
+  const sbMap={};
+  (data||[]).forEach(({key,value})=>sbMap[key]=value);
+  let needsReload=false;
+  for(const k of _SB_KEYS){
+    const localStr=localStorage.getItem(k);
+    const sbVal=sbMap[k];
+    const localVal=localStr?JSON.parse(localStr):null;
+    if(Array.isArray(localVal)&&Array.isArray(sbVal)){
+      if(localVal.length>sbVal.length){
+        await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
+      } else if(sbVal.length>localVal.length){
+        localStorage.setItem(k,JSON.stringify(sbVal));needsReload=true;
+      }
+    } else if(!localVal&&sbVal){
+      localStorage.setItem(k,JSON.stringify(sbVal));needsReload=true;
+    } else if(localVal&&!sbVal){
+      await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
+    } else if(localVal&&sbVal){
+      const ls=JSON.stringify(localVal),ss=JSON.stringify(sbVal);
+      if(ls!==ss)await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
+    }
+  }
   sbDot('ok');
+  if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+  if(needsReload)location.reload();
 }
 
 function sbDot(s){
