@@ -532,6 +532,9 @@ body{padding:14px}
           </div>
         </div>
       </div>
+      <!-- Sync Semana -->
+      <button id="sem-sync-btn" onclick="sbSyncSemana()" style="margin-top:10px;width:100%;padding:8px;font-size:11px;font-family:'Courier New',monospace;cursor:pointer;border:1px solid var(--bd2);border-radius:5px;background:var(--sf);color:var(--tx2);letter-spacing:.04em">↑ salvar semana no Supabase</button>
+      <div id="sem-sync-msg" style="font-size:10px;font-family:'Courier New',monospace;text-align:center;margin-top:4px;min-height:14px"></div>
     </div>
   </div>
 </div>
@@ -2506,20 +2509,50 @@ setInterval(sbPushAll,5*60*1000);
 async function sbManualSync(){
   const btn=document.getElementById('sync-btn');
   if(!_sbUser){alert('Faça login para sincronizar.');return;}
+  if(btn&&btn.disabled)return;
   if(btn){btn.textContent='↑ …';btn.disabled=true;}
   sbDot('sync');
   const errs=[];
-  await Promise.all(_SB_KEYS.map(async k=>{
-    const v=localStorage.getItem(k);if(!v)return;
-    await _sbUpsert(k,JSON.parse(v)).catch(e=>errs.push(e.message));
-  }));
+  const deadline=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout 15s')),15000));
+  try{
+    await Promise.race([
+      Promise.all(_SB_KEYS.map(async k=>{
+        const v=localStorage.getItem(k);if(!v)return;
+        await _sbUpsert(k,JSON.parse(v)).catch(e=>errs.push(k+': '+e.message));
+      })),
+      deadline
+    ]);
+  }catch(e){errs.push(e.message);}
+  finally{if(btn){btn.textContent='↑ sync';btn.disabled=false;}}
+  if(errs.length){sbDot('err');alert('Erro no sync:\n'+errs.join('\n'));}
+  else sbDot('ok');
+}
+async function sbSyncSemana(){
+  const btn=document.getElementById('sem-sync-btn');
+  const msg=document.getElementById('sem-sync-msg');
+  if(!_sbUser){if(msg)msg.textContent='⚠ faça login primeiro';return;}
+  if(btn&&btn.disabled)return;
+  if(btn){btn.textContent='↑ salvando…';btn.disabled=true;}
+  if(msg)msg.textContent='';
+  const keys=['slog','dc_ac','rq6_s','rq6_h','cal_ev'];
+  const errs=[];
+  const deadline=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout 15s')),15000));
+  try{
+    await Promise.race([
+      Promise.all(keys.map(async k=>{
+        const v=localStorage.getItem(k);if(!v)return;
+        await _sbUpsert(k,JSON.parse(v)).catch(e=>errs.push(k+': '+e.message));
+      })),
+      deadline
+    ]);
+  }catch(e){errs.push(e.message);}
+  finally{if(btn){btn.textContent='↑ salvar semana no Supabase';btn.disabled=false;}}
   if(errs.length){
-    sbDot('err');
-    alert('Erro ao sincronizar:\n'+errs.join('\n'));
+    if(msg){msg.textContent='⚠ erro: '+errs[0];msg.style.color='var(--red)';}
   } else {
+    if(msg){msg.textContent='✓ salvo ('+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+')';msg.style.color='var(--grn)';}
     sbDot('ok');
   }
-  if(btn){btn.textContent='↑ sync';btn.disabled=false;}
 }
 
 function sbDot(s){
