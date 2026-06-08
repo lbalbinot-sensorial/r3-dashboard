@@ -2455,10 +2455,11 @@ function sbSync(key,val){
 }
 
 async function _sbUpsert(k,v){
-  return _SB.from('dashboard_data').upsert(
+  const{error}=await _SB.from('dashboard_data').upsert(
     {user_id:_sbUser.id,key:k,value:v,updated_at:new Date().toISOString()},
     {onConflict:'user_id,key'}
   );
+  if(error)throw new Error(k+': '+error.message);
 }
 async function sbLoad(){
   sbDot('sync');
@@ -2473,30 +2474,27 @@ async function sbLoad(){
     const sbVal=sbMap[k];
     const localVal=localStr?JSON.parse(localStr):null;
     if(!localVal&&sbVal){
-      // dispositivo novo — puxa do Supabase
       toDownload.push({k,v:sbVal});
     } else if(localVal&&!sbVal){
-      // só local — sobe
       toUpload.push({k,v:localVal});
     } else if(localVal&&sbVal){
       if(Array.isArray(localVal)&&Array.isArray(sbVal)){
         if(sbVal.length>localVal.length) toDownload.push({k,v:sbVal});
         else if(localVal.length>sbVal.length) toUpload.push({k,v:localVal});
-        // iguais: nada
       } else {
-        // não-array: local é autoridade (dispositivo primário)
         if(JSON.stringify(localVal)!==JSON.stringify(sbVal)) toUpload.push({k,v:localVal});
       }
     }
   }
-  // sobe primeiro (sem debounce, aguarda conclusão)
-  if(toUpload.length) await Promise.all(toUpload.map(({k,v})=>_sbUpsert(k,v)));
-  // depois atualiza local e recarrega se necessário
+  // sobe cada chave independentemente para não bloquear as demais em caso de erro
+  if(toUpload.length){
+    const errs=[];
+    await Promise.all(toUpload.map(({k,v})=>_sbUpsert(k,v).catch(e=>errs.push(e.message))));
+    if(errs.length){sbDot('err');console.error('sbLoad upload erros:',errs);return;}
+  }
   if(toDownload.length){
     toDownload.forEach(({k,v})=>localStorage.setItem(k,JSON.stringify(v)));
-    sbDot('ok');
-    location.reload();
-    return;
+    sbDot('ok');location.reload();return;
   }
   sbDot('ok');
 }
@@ -2510,13 +2508,17 @@ async function sbManualSync(){
   if(!_sbUser){alert('Faça login para sincronizar.');return;}
   if(btn){btn.textContent='↑ …';btn.disabled=true;}
   sbDot('sync');
-  try{
-    await Promise.all(_SB_KEYS.map(async k=>{
-      const v=localStorage.getItem(k);if(!v)return;
-      await _sbUpsert(k,JSON.parse(v));
-    }));
+  const errs=[];
+  await Promise.all(_SB_KEYS.map(async k=>{
+    const v=localStorage.getItem(k);if(!v)return;
+    await _sbUpsert(k,JSON.parse(v)).catch(e=>errs.push(e.message));
+  }));
+  if(errs.length){
+    sbDot('err');
+    alert('Erro ao sincronizar:\n'+errs.join('\n'));
+  } else {
     sbDot('ok');
-  }catch(e){sbDot('err');}
+  }
   if(btn){btn.textContent='↑ sync';btn.disabled=false;}
 }
 
