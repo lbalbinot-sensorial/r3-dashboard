@@ -1,0 +1,2505 @@
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--sf:#f9f9f7;--sf2:#f1f1ed;--bd:#e4e4dc;--bd2:#c8c8c0;
+  --tx:#1a1a1a;--tx2:#555;--tx3:#999;--tx4:#ccc;
+  --red:#c0392b;--rbg:#fdf2f2;--rbd:#f5c6c4;
+  --amb:#b8730a;--abg:#fdf8f0;--abd:#f0d8a8;
+  --grn:#2d7a4a;--gbg:#f2f8f4;--gbd:#b8dcc8;
+  --blu:#1a5fa8;--bbg:#f0f6fc;--bbd:#b8d4f0;
+  font-family:'Georgia',serif;
+}
+body{background:var(--bg);color:var(--tx);padding:.75rem}
+h1{font-size:14px;font-weight:400;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.sub{font-size:10px;color:var(--tx3);letter-spacing:.05em;margin-bottom:1.25rem;font-family:'Courier New',monospace}
+.tabs{display:flex;border-bottom:1.5px solid var(--bd2);margin-bottom:1.25rem;overflow-x:auto}
+.tab{padding:6px 12px;font-size:10px;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;background:none;border:none;color:var(--tx3);border-bottom:2px solid transparent;margin-bottom:-1.5px;white-space:nowrap;font-family:'Courier New',monospace}
+.tab:hover{color:var(--tx2)}.tab.active{color:var(--tx);border-bottom-color:var(--tx)}
+.panel{display:none}.panel.active{display:block}
+.sec{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3);margin-bottom:.6rem;padding-bottom:.3rem;border-bottom:1px solid var(--bd);font-family:'Courier New',monospace}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1.25rem}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:1rem}
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.65rem .9rem}
+.card .v{font-size:18px;font-family:'Courier New',monospace;line-height:1}
+.card .l{font-size:9px;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;margin-top:3px;font-family:'Courier New',monospace}
+.card.grn .v{color:var(--grn)}.card.amb .v{color:var(--amb)}.card.red .v{color:var(--red)}.card.blu .v{color:var(--blu)}
+.badge{display:inline-block;font-size:9px;padding:2px 5px;border-radius:3px;font-family:'Courier New',monospace}
+.bg{background:var(--gbg);color:var(--grn);border:1px solid var(--gbd)}
+.ba{background:var(--abg);color:var(--amb);border:1px solid var(--abd)}
+.br{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+.bb{background:var(--bbg);color:var(--blu);border:1px solid var(--bbd)}
+/* counters */
+.ctrs{display:flex;gap:10px;margin-bottom:1.25rem}
+.ctr{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.6rem .9rem;flex:1}
+.ctr .v{font-size:20px;font-family:'Courier New',monospace;line-height:1}
+.ctr .l{font-size:9px;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;margin-top:3px;font-family:'Courier New',monospace}
+.ctr.red .v{color:var(--red)}.ctr.amb .v{color:var(--amb)}.ctr.blu .v{color:var(--blu)}
+/* week nav */
+.wnav-wrap{display:flex;align-items:center;gap:4px;margin-bottom:.75rem;min-width:0;overflow:hidden}
+.wnarr{background:none;border:1px solid var(--bd);border-radius:4px;padding:2px 9px;font-size:14px;cursor:pointer;color:var(--tx2);flex-shrink:0;line-height:1.4}
+.wnarr:hover{background:var(--sf2)}
+.wnav{display:flex;gap:5px;flex-wrap:nowrap;overflow-x:hidden;flex:1;min-width:0;scroll-behavior:smooth}
+.wnb{padding:4px 10px;font-size:10px;cursor:pointer;background:var(--sf);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Courier New',monospace;white-space:nowrap}
+.wnb.active{background:var(--tx);border-color:var(--tx);color:#fff}
+.wnb.crit{border-color:var(--rbd);color:var(--red)}.wnb.crit.active{background:var(--red);border-color:var(--red);color:#fff}
+.ri-bar{font-size:11px;color:var(--tx2);font-family:'Courier New',monospace;margin-bottom:.6rem;display:flex;align-items:center;gap:8px}
+/* grade */
+.gw{border:1px solid var(--bd2);border-radius:8px;overflow:hidden;margin-bottom:.75rem}
+.gh{display:grid;grid-template-columns:70px repeat(7,1fr);background:var(--sf2);border-bottom:1.5px solid var(--bd2)}
+.ghc{padding:2px 3px;text-align:center;font-size:14px;font-family:'Courier New',monospace;text-transform:uppercase;color:var(--tx2);border-right:1px solid var(--bd)}
+.ghc:last-child{border-right:none}.ghc .ghd{font-size:13px;color:var(--tx3);display:block;margin-top:1px}
+.ghc.tod{background:var(--tx);color:#fff}.ghc.tod .ghd{color:rgba(255,255,255,.5)}
+.ghc.wknd{background:var(--sf);color:var(--tx3)}
+.gr{display:grid;grid-template-columns:70px repeat(7,1fr);border-bottom:1px solid var(--bd)}
+.gr:last-child{border-bottom:none}
+.grl{padding:20px 12px;font-size:13px;font-family:'Courier New',monospace;text-transform:uppercase;color:var(--tx3);background:var(--sf);border-right:1.5px solid var(--bd2);display:flex;align-items:center}
+.grc{padding:22px 20px;border-right:1px solid var(--bd);min-height:110px;display:flex;flex-direction:column;gap:5px}
+.grc:last-child{border-right:none}.grc.wknd{background:var(--sf)}.grc.bico{border-left:2px solid var(--amb)}
+.tt{font-size:9px;padding:2px 6px;border-radius:3px;font-family:'Courier New',monospace;line-height:1.3;text-align:center}
+.tob{background:var(--bbg);color:var(--blu);border:1px solid var(--bbd)}
+.tbi{background:var(--abg);color:var(--amb);border:1px solid var(--abd)}
+.ab{padding:.55rem .9rem;border-radius:6px;font-size:11px;line-height:1.6;margin-bottom:.5rem}
+.ab-r{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}
+/* aulas */
+.mblk{margin-bottom:.75rem;border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.mhdr{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1rem;background:var(--sf2);cursor:pointer;user-select:none}
+.mhdr:hover{background:var(--sf)}
+.mttl{font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-family:'Courier New',monospace;color:var(--tx)}
+.mmet{display:flex;align-items:center;gap:8px;font-size:10px;color:var(--tx3);font-family:'Courier New',monospace}
+.mb{width:50px;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle}
+.mbf{height:100%;border-radius:2px}
+.mbdy{display:none}.mbdy.open{display:block}
+.arow{display:grid;grid-template-columns:22px 1fr 40px;gap:6px;align-items:center;padding:4px 1rem;border-bottom:1px solid var(--bd);font-size:11px}
+.arow:last-child{border-bottom:none}.arow:hover{background:var(--sf)}
+.arow.done{background:var(--gbg)}.arow.done .an{color:var(--tx3);text-decoration:line-through}
+.ack{width:18px;height:18px;border:1.5px solid var(--bd2);border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.ack.checked{background:var(--grn);border-color:var(--grn);color:#fff}
+.an{font-family:'Georgia',serif;color:var(--tx)}
+.pb{height:5px;background:var(--sf2);border-radius:3px;overflow:hidden;margin:5px 0}
+.pf{height:100%;border-radius:3px;transition:width .4s}
+/* questões top */
+.q3{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;border:1px solid var(--bd2);border-radius:8px;overflow:hidden;margin-bottom:.5rem;background:var(--bd2)}
+.q3c{background:var(--bg);padding:.65rem 1rem;text-align:center}
+.q3c .v{font-size:20px;line-height:1;font-family:'Courier New',monospace}
+.q3c .l{font-size:9px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx3);margin-top:3px}
+.q3c.grn .v{color:var(--grn)}.q3c.red .v{color:var(--red)}.q3c.amb .v{color:var(--amb)}
+.qpbar{height:3px;background:var(--sf2);margin-bottom:.75rem;border-radius:2px;overflow:hidden}
+.qpfill{height:100%;border-radius:2px;transition:width .4s}
+.qlay{display:grid;grid-template-columns:1fr 200px;gap:.75rem;align-items:start}
+.qmc{display:flex;flex-direction:column;gap:4px}
+.qmb{border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.qmh{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--sf2);cursor:pointer;user-select:none;border-bottom:1px solid var(--bd)}
+.qmh:hover{background:var(--sf)}
+.qmt{font-size:12px;color:var(--tx);font-family:'Georgia',serif;font-weight:400}
+.qmr{display:flex;align-items:center;gap:7px;font-size:10px;color:var(--tx3);font-family:'Courier New',monospace}
+.qmbar{width:40px;height:3px;background:var(--bd);border-radius:2px;overflow:hidden;display:inline-block;vertical-align:middle}
+.qmbar-f{height:100%;border-radius:2px}
+.qmbdy{display:none}.qmbdy.open{display:block}
+.qsep{padding:3px 12px;font-size:9px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx4);background:var(--sf);border-top:1px solid var(--bd);border-bottom:1px solid var(--bd)}
+.qclbl{display:grid;grid-template-columns:1fr 155px 155px 125px 20px;gap:6px;padding:3px 12px;background:var(--sf);border-bottom:1px solid var(--bd);font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx4)}
+.qdelb{background:none;border:none;color:var(--tx4);cursor:pointer;font-size:13px;line-height:1;padding:0;opacity:.4}
+.qdelb:hover{opacity:1;color:var(--red)}
+.hwk{border:1px solid var(--bd);border-radius:6px;margin-bottom:8px;overflow:hidden}
+.hwk-hdr{display:flex;align-items:center;gap:8px;padding:.45rem .75rem;background:var(--sf2);border-bottom:1px solid var(--bd);flex-wrap:wrap}
+.hwk-lbl{font-family:'Courier New',monospace;font-size:11px;color:var(--tx);min-width:100px}
+.hwk-mod{font-family:'Georgia',serif;font-size:11px;color:var(--tx2)}
+.hwk-stats{font-family:'Courier New',monospace;font-size:10px;color:var(--tx3);margin-left:auto}
+.hwk-evs{padding:.35rem .5rem;display:flex;flex-direction:column;gap:3px}
+.hwk-dt{font-size:9px;color:inherit;opacity:.7;margin-right:3px;font-family:'Courier New',monospace}
+.qrow{display:grid;grid-template-columns:1fr 155px 155px 125px 20px;gap:6px;align-items:center;padding:5px 12px;border-bottom:1px solid var(--bd)}
+.qrow:last-child{border-bottom:none}.qrow:hover{background:var(--sf)}.qrow.ar{background:var(--rbg)}
+.qrn{font-size:11px;color:var(--tx);font-family:'Georgia',serif;line-height:1.3}
+.qrn.bl{font-size:10px;font-family:'Courier New',monospace;color:var(--tx2)}
+.qc2{display:flex;align-items:center;gap:3px;border:1px solid var(--bd);border-radius:5px;padding:3px 6px;background:#fff}
+.qc2.ac{background:var(--rbg);border-color:var(--rbd)}
+.qfi{width:32px;background:transparent;border:none;border-bottom:1px solid var(--bd2);padding:1px 2px;color:var(--tx);font-size:11px;font-family:'Courier New',monospace;text-align:center}
+.qfi:focus{outline:none;border-bottom-color:var(--tx)}
+.qsl{font-size:10px;color:var(--tx3)}
+.qpp{font-size:11px;min-width:26px;text-align:right;font-weight:500;padding:0 2px}
+.qpp.h{color:var(--grn)}.qpp.m{color:var(--amb)}.qpp.l{color:var(--red)}
+.qokb{padding:2px 6px;font-size:9px;cursor:pointer;background:var(--tx);border:none;border-radius:3px;color:#fff;margin-left:2px;white-space:nowrap}
+.qokb:hover{opacity:.8}
+.qnewb{padding:2px 5px;font-size:10px;cursor:pointer;background:none;border:1px solid var(--bd);border-radius:3px;color:var(--tx3);margin-left:2px;line-height:1;white-space:nowrap}
+.qnewb:hover{background:var(--sf2);color:var(--tx);border-color:var(--tx3)}
+.qc3{display:flex;align-items:center;gap:3px;border:1px solid var(--bd);border-radius:5px;padding:3px 6px;background:#fff;font-size:10px}
+.qc3.em{background:var(--sf);color:var(--tx4);justify-content:center}
+.qrd{color:var(--tx3);font-size:10px;white-space:nowrap}
+.qrp{font-size:11px;font-weight:500;min-width:24px;text-align:right}
+.qrp.h{color:var(--grn)}.qrp.m{color:var(--amb)}.qrp.l{color:var(--red)}.qrp.vl{color:var(--red)}
+.qri{width:30px;background:transparent;border:none;border-bottom:1px solid var(--bd2);padding:1px 2px;color:var(--tx);font-size:10px;font-family:'Courier New',monospace;text-align:center}
+.qri:focus{outline:none;border-bottom-color:var(--tx)}
+.qrok{padding:2px 4px;font-size:8px;cursor:pointer;background:var(--sf2);border:1px solid var(--bd);border-radius:3px;color:var(--tx2)}
+.qrok:hover{background:var(--tx);color:#fff}
+.qc4{display:flex;align-items:center;justify-content:center;border:1px solid var(--bd);border-radius:5px;padding:3px 6px;background:#fff;font-size:10px;text-align:center}
+.qc4.em{background:var(--sf);color:var(--tx4)}.qc4.due{background:var(--rbg);border-color:var(--rbd);color:var(--red);font-weight:500}
+.qc4.soon{background:var(--abg);border-color:var(--abd);color:var(--amb)}.qc4.ok2{background:var(--gbg);border-color:var(--gbd);color:var(--grn)}
+.qsc{display:flex;flex-direction:column;gap:.5rem;position:sticky;top:.75rem}
+.qsbox{border:1px solid var(--bd);border-radius:8px;overflow:hidden}
+.qshdr{padding:6px 9px;background:var(--sf2);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx2);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.qsbdg{font-size:9px;padding:1px 5px;border-radius:10px}
+.qsbr{background:var(--rbg);color:var(--red);border:1px solid var(--rbd)}.qsba{background:var(--abg);color:var(--amb);border:1px solid var(--abd)}
+.qsbody{padding:.5rem;display:flex;flex-direction:column;gap:4px;max-height:260px;overflow-y:auto}
+.qsi{padding:5px 7px;border-radius:5px;font-size:10px;line-height:1.5}
+.qsi.urg{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+.qsi.pend{background:var(--abg);border:1px solid var(--abd);color:var(--amb)}
+.qsi.al{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+.qsn{font-weight:500;font-size:10px}.qsm{font-size:9px;opacity:.85;margin-top:1px}.qsw{font-size:9px;font-weight:700;margin-top:2px}
+.qsi1l{padding:4px 7px;border-radius:5px;font-size:10px;font-family:'Courier New',monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.35}
+.qsi1l:hover{opacity:.75}
+.qsi1l.pend{background:var(--abg);border:1px solid var(--abd);color:var(--amb)}
+.qsi1l.urg{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+.qsi1l.al{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+.qsi-exp{padding:4px 6px;background:var(--sf2);border:1px solid var(--bd);border-radius:5px;display:flex;flex-wrap:wrap;gap:3px;align-items:center;font-size:9px;color:var(--tx2)}
+.qsi-exp input{width:38px;border:1px solid var(--bd2);border-radius:3px;padding:2px 4px;font-size:10px;font-family:'Courier New',monospace;text-align:center;background:white}
+.qsi-exp button{padding:2px 7px;font-size:9px;cursor:pointer;border-radius:3px;border:1px solid var(--bd2);background:white;font-family:'Courier New',monospace}
+.qsi-exp button:hover{background:var(--sf2)}
+.qemp{font-size:10px;color:var(--tx3);padding:.5rem;text-align:center;font-style:italic}
+.qhtog{margin-top:.75rem;border-top:1px solid var(--bd);padding-top:.5rem}
+.qhbtn{font-size:10px;color:var(--tx3);cursor:pointer;background:none;border:none;letter-spacing:.06em;text-transform:uppercase}
+.qhbtn:hover{color:var(--tx)}
+.qhinner{display:none;margin-top:.5rem;flex-direction:column;gap:2px}
+.qhrow{display:grid;grid-template-columns:65px 1fr 50px 32px 75px 16px;gap:5px;align-items:center;padding:3px 8px;border-radius:3px;font-size:10px;background:var(--sf)}
+.qhrow:nth-child(even){background:var(--sf2)}
+/* flashcards tab */
+.fc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:.5rem}
+.fc-card{background:#e8f0fd;border:1.5px solid #b8d0f5;border-radius:8px;padding:1rem;transition:box-shadow .15s}
+.fc-card:hover{box-shadow:0 2px 10px rgba(26,95,168,.15)}
+.fc-name{font-size:10px;font-weight:700;color:#1a5fa8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.75rem;line-height:1.3}
+.fc-time{background:#fff;border:1.5px solid #b8d0f5;border-radius:6px;padding:.65rem .5rem;text-align:center}
+.fc-tv{font-size:24px;font-family:Georgia,serif;color:#1a5fa8;line-height:1}
+.fc-tv span{font-size:13px;font-family:inherit;font-weight:normal}
+.fc-tl{font-size:8px;color:#4a7fc0;text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+/* calendário */
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:1.25rem}
+.chc{text-align:center;font-size:9px;color:var(--tx3);font-family:'Courier New',monospace;padding:3px 0;text-transform:uppercase}
+.cday{background:var(--sf);border:1px solid var(--bd);border-radius:4px;padding:3px 4px;min-height:48px}
+.cday.empty{background:none;border:none}.cday.wknd{background:#fafafa}
+.cday.bico{border-left:2px solid var(--amb)}.cday.crit{border-left:2px solid var(--red);background:var(--rbg)}
+.cnum{font-size:10px;color:var(--tx3);font-family:'Courier New',monospace;margin-bottom:2px}
+.ctag{font-size:8px;padding:1px 3px;border-radius:2px;margin-bottom:1px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Courier New',monospace}
+/* diário/domingo */
+.wbtn{padding:5px 10px;font-size:10px;cursor:pointer;background:var(--sf);border:1px solid var(--bd);border-radius:4px;color:var(--tx2);font-family:'Courier New',monospace}
+.wbtn.active{background:var(--tx);border-color:var(--tx);color:#fff}
+.wbtn.hd{border-color:var(--gbd);background:var(--gbg);color:var(--grn)}
+.wbtn.hd.active{background:var(--grn);color:#fff;border-color:var(--grn)}
+.dbox{background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:.9rem;margin-bottom:1rem}
+.erow{display:grid;grid-template-columns:110px 1fr 1fr;gap:8px;align-items:center;margin-bottom:7px}
+.elbl{font-size:12px;color:var(--tx2);font-family:'Georgia',serif}
+.fin{display:flex;align-items:center;gap:4px}
+.fin input,.nin,.din{background:#fff;border:1px solid var(--bd2);border-radius:4px;padding:3px 6px;color:var(--tx);font-size:12px;font-family:'Courier New',monospace;text-align:center}
+.fin input{width:46px}.nin{width:100%;text-align:left}.din{width:100%}
+.fin input:focus,.nin:focus,.din:focus{outline:none;border-color:var(--tx)}
+.fsl{font-size:13px;color:var(--tx3);font-family:'Courier New',monospace}
+.bp{padding:5px 16px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;background:var(--tx);border:1px solid var(--tx);border-radius:4px;color:#fff;font-family:'Courier New',monospace}
+.bs{padding:5px 12px;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;background:var(--sf);border:1px solid var(--bd2);border-radius:4px;color:var(--tx3);font-family:'Courier New',monospace;margin-left:5px}
+.wsc{background:var(--sf);border:1px solid var(--bd);border-radius:6px;padding:.65rem}
+.wsf{font-size:15px;font-family:'Courier New',monospace;color:var(--tx);line-height:1}
+.wsl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;margin-top:3px;font-family:'Courier New',monospace}
+.wsp{font-size:10px;font-family:'Courier New',monospace;margin-top:2px}
+.dombox{background:#fff;border:1.5px solid var(--bd2);border-radius:8px;padding:.9rem;margin-bottom:1rem}
+.domtit{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--tx);font-family:'Courier New',monospace;margin-bottom:.65rem;display:flex;align-items:center;gap:7px}
+.domnum{width:20px;height:20px;background:var(--tx);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-family:'Courier New',monospace;flex-shrink:0}
+.domrow{display:grid;grid-template-columns:120px 75px 1fr;gap:8px;align-items:center;margin-bottom:7px}
+.domlbl{font-size:12px;color:var(--tx2);font-family:'Georgia',serif}
+.domhint{font-size:10px;color:var(--tx4);font-family:'Courier New',monospace}
+.hrow{display:grid;grid-template-columns:90px 110px 1fr 65px 65px;gap:5px;padding:5px 8px;border-bottom:1px solid var(--bd);font-size:11px;align-items:center;font-family:'Courier New',monospace}
+.hrow .hd{color:var(--tx3);font-size:9px;letter-spacing:.06em;text-transform:uppercase}
+.pg{color:var(--grn)}.pa{color:var(--amb)}.pr{color:var(--red)}
+.divider{height:1px;background:var(--bd);margin:1rem 0}
+/* layout header */
+.vg-hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.25rem}
+.frase-mot{font-size:11px;color:var(--tx3);font-family:'Georgia',serif;font-style:italic;max-width:260px;text-align:right;line-height:1.6}
+/* layout dois colunas */
+.vg2col{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:20px;align-items:stretch}
+.vgsbar{display:flex;flex-direction:column;gap:.5rem;position:sticky;top:.75rem}
+.vgbtn{width:100%;padding:.55rem .9rem;font-size:10px;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border-radius:6px;border:1.5px solid;font-family:'Courier New',monospace;text-align:left;transition:opacity .15s}
+.vgbtn:hover{opacity:.8}
+.vgbtn-red{background:var(--rbg);color:var(--red);border-color:var(--rbd)}
+.vgbtn-soft{background:var(--sf);color:var(--tx2);border-color:var(--bd)}
+/* protocolo retina */
+.ret-hdr{display:flex;align-items:center;gap:10px;background:var(--abg);border:1px solid var(--abd);border-radius:6px;padding:.6rem 1rem;margin-top:1.25rem;margin-bottom:.75rem}
+.ret-ttl{font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--amb);font-family:'Courier New',monospace;white-space:nowrap}
+.ret-sub{font-size:11px;color:var(--tx2);font-family:'Georgia',serif}
+.ret-grid{display:grid;grid-template-columns:1fr 1fr 1fr 185px;gap:12px;align-items:start}
+.ret-sec{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--tx3);margin-bottom:.5rem;padding-bottom:.3rem;border-bottom:1px solid var(--bd);font-family:'Courier New',monospace}
+.ret-g2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.5rem}
+/* semana */
+#semana.active{display:flex;flex-direction:column;min-height:calc(100vh - 110px)}
+.sem-wrap{flex:1;display:grid;grid-template-columns:1fr 288px;gap:16px;align-items:stretch}
+.sem-agenda{border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:white;display:flex;flex-direction:column}
+.sem-ahdr{display:flex;justify-content:space-between;align-items:center;padding:.55rem .9rem;background:var(--sf2);border-bottom:1px solid var(--bd)}
+.sem-ahdr-ttl{font-family:'Georgia',serif;font-size:13px;color:var(--tx)}
+.sem-anav{display:flex;gap:4px}
+.sem-anav button{background:none;border:1px solid var(--bd);border-radius:3px;padding:2px 8px;font-size:11px;cursor:pointer;color:var(--tx2);font-family:'Courier New',monospace}
+.sem-anav button:hover{background:var(--sf2)}
+.sem-days{display:flex;flex-direction:column;flex:1}
+.sem-day{display:grid;grid-template-columns:68px 1fr;border-bottom:1px solid var(--bd2);flex:1;min-height:46px}
+.sem-day:last-child{border-bottom:none}
+.s-today{background:#fffef5}
+.sem-dlbl{border-right:1px solid var(--bd2);padding:.4rem .55rem;display:flex;flex-direction:column;justify-content:center}
+.sem-dnum{font-family:'Georgia',serif;font-size:16px;color:var(--tx);line-height:1}
+.sem-dnm{font-size:9px;color:var(--tx4);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
+.s-today .sem-dnum{color:var(--red);font-weight:bold}
+.sem-devs{padding:.35rem .5rem;display:flex;flex-direction:column;gap:3px;justify-content:center}
+.sem-ev{font-size:9px;font-family:'Courier New',monospace;padding:2px 6px;border-radius:3px;display:flex;align-items:center;gap:4px;line-height:1.35}
+.sem-ev.s-aula{background:#e8f5ee;color:#2d7a4a;border:1px solid #b8ddc8}
+.sem-ev.s-quest{background:#fdeef0;color:#b8170d;border:1px solid #f5c6cb}
+.sem-ev.s-flash{background:#e8f0fd;color:#1a5fa8;border:1px solid #b8d0f5}
+.sem-ev-del{cursor:pointer;opacity:.35;margin-left:auto;font-size:12px;line-height:1}
+.sem-ev-del:hover{opacity:1}
+.sem-hint{font-size:9px;color:var(--tx4);font-family:'Courier New',monospace}
+.sem-right{display:flex;flex-direction:column;gap:10px}
+.sem-db{background:var(--sf2);border:1px solid var(--bd);border-radius:6px;padding:.55rem 1rem;font-family:'Georgia',serif;font-size:14px;text-align:center;color:var(--tx)}
+.sem-card{border-radius:6px;padding:.65rem .75rem}
+.sem-card.s-grn{background:#f0faf4;border:1px solid #b8ddc8}
+.sem-card.s-pnk{background:#fdf0f0;border:1px solid #f5c6cb}
+.sem-card.s-blu{background:#f0f4fd;border:1px solid #b8d0f5}
+.sem-ct{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.s-grn .sem-ct{color:#2d7a4a}.s-pnk .sem-ct{color:#b8170d}.s-blu .sem-ct{color:#1a5fa8}
+.sem-si{width:100%;border:1px solid rgba(0,0,0,.14);border-radius:3px;padding:4px 7px;font-size:11px;background:white;box-sizing:border-box;margin-bottom:3px;font-family:'Courier New',monospace}
+.sem-res{max-height:120px;overflow-y:auto;background:white;border:1px solid rgba(0,0,0,.14);border-radius:3px;display:none;margin-bottom:4px}
+.sem-res.open{display:block}
+.sem-ri{padding:4px 8px;font-size:10px;cursor:pointer;border-bottom:1px solid rgba(0,0,0,.06);font-family:'Courier New',monospace}
+.sem-ri:hover{background:rgba(0,0,0,.04)}.sem-ri:last-child{border-bottom:none}
+.sem-sel-nm{font-size:10px;color:var(--tx);background:white;border:1px solid rgba(0,0,0,.12);border-radius:3px;padding:3px 7px;margin-bottom:4px;font-family:'Courier New',monospace;line-height:1.4}
+.sem-ok{border:none;border-radius:3px;padding:3px 11px;font-size:10px;cursor:pointer;color:white;font-family:'Courier New',monospace}
+.s-grn .sem-ok{background:#2d7a4a}.s-pnk .sem-ok{background:#b8170d}.s-blu .sem-ok{background:#1a5fa8}
+.sem-fi{width:55px;border:1px solid rgba(0,0,0,.14);border-radius:3px;padding:3px 5px;font-size:11px;font-family:'Courier New',monospace}
+/* modal */
+.modal-ov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-ov.open{display:flex}
+.modal-box{background:#fff;border-radius:10px;padding:1.5rem;width:360px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,.18)}
+.modal-tit{font-size:11px;letter-spacing:.09em;text-transform:uppercase;font-family:'Courier New',monospace;margin-bottom:1rem;color:var(--tx)}
+.modal-row{display:flex;gap:.5rem;margin-bottom:.5rem}
+.modal-sel{width:100%;background:#fff;border:1px solid var(--bd2);border-radius:4px;padding:3px 8px;font-size:12px;font-family:'Courier New',monospace;color:var(--tx)}
+
+/* ── TAMANHOS AJUSTADOS ── */
+body{padding:14px}
+.tab{padding:9px 36px;font-size:14px}
+.tabs{margin-bottom:26px}
+/* Visão Geral */
+#visao .ctr{padding:3px 15px}
+#visao .ctr .v{font-size:31px}
+#visao .ctr .l{font-size:9px}
+#visao .ctrs{gap:23px;margin-bottom:24px}
+#visao .card{padding:21px 17px}
+#visao .card .v{font-size:22px}
+#visao .g3,#visao .g4{gap:14px;margin-bottom:25px}
+#visao .vg2col{gap:64px}
+#visao .sec{margin-bottom:23px}
+#visao .mblk,#visao .qmb,#visao .gw{margin-bottom:40px}
+#visao .vgbtn{padding:15px 16px;font-size:12px}
+#visao .qshdr{padding:11px 9px;font-size:14px}
+#visao .qsi1l{padding:14px 7px;font-size:11px}
+#visao .qsbody{max-height:64px}
+/* Semana */
+#semana .sem-dnum{font-size:32px}
+#semana .sem-day{grid-template-columns:108px 1fr;min-height:100px}
+#semana .sem-ev{font-size:12px;padding:3px 15px}
+#semana .sem-devs{gap:7px}
+#semana .sem-wrap{gap:48px;grid-template-columns:1fr 440px}
+#semana .sem-card{padding:36px}
+#semana .sem-ct{font-size:19px}
+#semana .sem-si{font-size:15px}
+/* Aulas */
+#aulas .card{padding:15px 23px}
+#aulas .card .v{font-size:28px}
+#aulas .g4{gap:21px}
+#aulas .mhdr{padding:15px 1rem}
+#aulas .mttl{font-size:14px}
+#aulas .mblk{margin-bottom:6px}
+#aulas .arow{padding:4px 18px;font-size:15px}
+#aulas .ack{width:16px;height:16px}
+#aulas .sec{margin-bottom:8px}
+/* Questões */
+#questoes .q3c{padding:19px 1rem}
+#questoes .q3c .v{font-size:32px}
+#questoes .qmh{padding:7px 12px}
+#questoes .qmt{font-size:15px}
+#questoes .qrow{padding:6px 16px}
+#questoes .qrn{font-size:14px}
+#questoes .qlay{grid-template-columns:1fr 320px}
+#questoes .sec{margin-bottom:9px}
+.qclbl,.qrow{grid-template-columns:1fr 155px 125px 20px}
+/* Histórico */
+#historico .hrow{padding:7px 11px;font-size:11px}
+#historico .card{padding:14px 19px}
+#historico .card .v{font-size:28px}
+#historico .g3{gap:21px}
+#historico .sec{margin-bottom:24px}
+/* ── PRINT ── */
+@media print{body>*:not(#retPrintMod){display:none!important}#retPrintMod{display:block!important;position:static!important;background:transparent!important;overflow:visible!important}#retPrintMod .modal-box{box-shadow:none!important;max-height:none!important;overflow:visible!important;width:100%!important;max-width:100%!important}.no-print-chrome,.no-print-chrome *{display:none!important}}
+.rnote-print-entry{padding:.75rem 0;border-bottom:1px solid var(--abd)}
+.rnote-print-entry:last-child{border-bottom:none}
+/* ── SIZE PANEL ── */
+#sz-panel{position:fixed;right:16px;bottom:64px;width:226px;background:#fff;border:1.5px solid var(--bd2);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.13);z-index:400;display:none;font-family:'Courier New',monospace}
+#sz-panel.open{display:block}
+#sz-hdr{display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--sf2);border-bottom:1px solid var(--bd);border-radius:8px 8px 0 0;cursor:move;font-size:10px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;user-select:none}
+#sz-tabs{display:flex;flex-wrap:wrap;gap:3px;padding:5px 7px;border-bottom:1px solid var(--bd)}
+.sz-tab{font-size:9px;padding:2px 5px;border:1px solid var(--bd);border-radius:3px;cursor:pointer;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace;letter-spacing:.04em}
+.sz-tab.sz-tab-a{background:var(--tx);color:#fff;border-color:var(--tx)}
+#sz-body{padding:6px 8px;max-height:268px;overflow-y:auto}
+.sz-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;gap:4px}
+.sz-lbl{font-size:9px;color:var(--tx2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sz-inp{width:50px;font-size:11px;font-family:'Courier New',monospace;border:1px solid var(--bd2);border-radius:3px;padding:2px 4px;text-align:right;color:var(--tx)}
+#sz-foot{padding:5px 8px;border-top:1px solid var(--bd);display:flex;gap:6px}
+@media print{#sz-panel{display:none!important}}
+/* ── FLASHCARD HISTORY ── */
+.fh-hdr,.fh-row{display:grid;grid-template-columns:46px 1fr 38px 18px;gap:6px;align-items:center;padding:4px 8px;font-family:'Courier New',monospace}
+.fh-hdr{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:var(--tx3);border-bottom:1px solid var(--bd);margin-bottom:2px}
+.fh-row{font-size:11px;border-bottom:1px solid var(--sf)}.fh-row:hover{background:var(--sf)}
+.fh-dt{color:var(--tx3);font-size:10px}.fh-nm{color:var(--tx)}.fh-min{color:#1a5fa8;text-align:right}
+.fh-del{background:none;border:none;color:var(--tx3);cursor:pointer;font-size:14px;padding:0;line-height:1}.fh-del:hover{color:var(--red)}
+.fh-empty{font-size:11px;color:var(--tx3);font-style:italic;padding:.75rem .5rem}
+.fh-total{font-size:11px;color:var(--tx3);font-family:'Courier New',monospace;padding:.4rem .5rem;border-top:1px solid var(--bd);text-align:right;margin-top:2px}
+.fh-body{max-height:300px;overflow-y:auto}
+/* ── RETINA TAB ── */
+.ret-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+.ret-bot{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:start}
+.ret-rcol{display:flex;flex-direction:column;gap:14px}
+.rbox{border:1px solid var(--abd);border-radius:8px;padding:.9rem;background:#fff}
+.rbox-ttl{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--amb);font-family:'Courier New',monospace;margin-bottom:.65rem;padding-bottom:.35rem;border-bottom:1px solid var(--abd)}
+.rctr-row{display:flex;align-items:baseline;gap:.5rem;margin-bottom:.45rem}
+.rctr-v{font-size:20px;color:var(--amb);font-family:'Courier New',monospace;min-width:52px;text-align:right;line-height:1}
+.rctr-l{font-size:10px;color:var(--tx2)}
+.rnote-ta{width:100%;box-sizing:border-box;border:1px solid var(--abd);border-radius:4px;padding:.5rem;font-size:12px;font-family:Georgia,serif;color:var(--tx);resize:vertical;min-height:82px;background:var(--abg)}
+.rnote-ta:focus{outline:none;border-color:var(--amb)}
+.rnote-hist{max-height:110px;overflow-y:auto;display:flex;flex-direction:column;gap:5px}
+.rnote-entry{border:1px solid var(--abd);border-radius:4px;padding:.3rem .55rem;background:var(--abg)}
+.rnote-edt{font-size:9px;color:var(--amb);font-family:'Courier New',monospace;margin-bottom:2px}
+.rnote-etxt{font-size:11px;color:var(--tx);font-family:Georgia,serif;line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.rsd-row{display:flex;gap:3px;flex-wrap:wrap;margin-top:.35rem;align-items:flex-end}
+.rsd{width:15px;height:15px;border-radius:3px;flex-shrink:0}
+.rsd.ok{background:var(--gbg);border:1px solid var(--gbd)}.rsd.nok{background:var(--rbg);border:1px solid var(--rbd)}.rsd.emp{background:#f0f0f0;border:1px solid var(--bd)}
+.rsd.hoje{width:18px;height:18px;border-radius:4px;outline:2px solid var(--tx3);outline-offset:1px}
+.rsd.hoje.ok{background:var(--grn);border-color:var(--grn);outline-color:var(--grn)}
+.rsd.hoje.nok{outline-color:var(--rbd)}
+.rrev-item{padding:4px 8px;border-radius:4px;font-size:10px;font-family:'Courier New',monospace;margin-bottom:3px}
+.rrev-item.pend{background:var(--abg);border:1px solid var(--abd);color:var(--amb)}
+.rrev-item.urg{background:var(--rbg);border:1px solid var(--rbd);color:var(--red)}
+.rau-list{max-height:310px;overflow-y:auto}
+.rq-list{max-height:310px;overflow-y:auto}
+</style>
+
+<div class="vg-hdr">
+  <div>
+    <h1>Dashboard Organização R3</h1>
+    <div class="sub">Luís Gustavo · R3 Oftalmologia</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;font-family:'Courier New',monospace;font-size:10px">
+    <span id="sb-dot" style="color:var(--tx3)">☁</span>
+    <div id="sb-auth"></div>
+    <button onclick="document.getElementById('sz-panel').classList.toggle('open');if(document.getElementById('sz-panel').classList.contains('open'))szRenderPanel()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd2);border-radius:4px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">⊞ tamanhos</button>
+  </div>
+  <div class="frase-mot" id="frase-mot"></div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('visao',this)">Visão Geral</button>
+  <button class="tab" onclick="showTab('semana',this)">Semana</button>
+  <button class="tab" onclick="showTab('aulas',this)">Aulas</button>
+  <button class="tab" onclick="showTab('questoes',this)">Questões</button>
+  <button class="tab" onclick="showTab('flashcards',this)">Flashcards</button>
+  <button class="tab" onclick="showTab('retina',this)">Retina</button>
+  <button class="tab" onclick="showTab('historico',this)">Histórico</button>
+</div>
+
+<div id="visao" class="panel active">
+  <!-- Contadores -->
+  <div class="ctrs">
+    <div class="ctr red"><div class="v" id="cret">—</div><div class="l">Prova Retina (nov/26)</div></div>
+    <div class="ctr amb"><div class="v" id="cger">—</div><div class="l">Prova Geral (jan/27)</div></div>
+    <div class="ctr blu"><div class="v" id="modAtual">Sem 13</div><div class="l" id="modAtualL">Glaucoma em andamento</div><div style="font-size:18px;color:rgba(26,95,168,.85);font-family:'Courier New',monospace;margin-top:5px;line-height:1" id="modAtualMin"></div></div>
+  </div>
+  <!-- Grade semanal + Sidebar -->
+  <div class="vg2col">
+    <div>
+      <div class="sec" style="display:flex;align-items:center;gap:8px">grade semanal <button onclick="goToday()" style="font-size:9px;padding:1px 7px;cursor:pointer;border:1px solid var(--bd2);border-radius:3px;background:var(--sf);color:var(--tx2);font-family:'Courier New',monospace;letter-spacing:.04em;text-transform:uppercase">hoje</button></div>
+      <div class="wnav-wrap">
+        <button class="wnarr" onclick="wNavArr(-1)">‹</button>
+        <div class="wnav" id="wnav"></div>
+        <button class="wnarr" onclick="wNavArr(1)">›</button>
+      </div>
+      <div class="ri-bar" id="ri-bar"></div>
+      <div class="gw">
+        <div class="gh" id="gh"></div>
+        <div id="gm" class="gr"></div>
+        <div id="gt" class="gr"></div>
+      </div>
+      <div id="walert"></div>
+    </div>
+    <div class="vgsbar">
+      <button class="vgbtn vgbtn-red" onclick="openAddEvent()">+ Adicionar evento ao calendário</button>
+      <button class="vgbtn vgbtn-soft" onclick="showTab('questoes',document.querySelectorAll('.tab')[3])">Questões gerais →</button>
+      <div class="qsbox">
+        <div class="qshdr">Próximas Revisões <span class="qsbdg qsba" id="qrb2"></span></div>
+        <div class="qsbody" id="qrp2" style="max-height:120px"></div>
+      </div>
+      <div class="qsbox">
+        <div class="qshdr">Alertas <span class="qsbdg qsbr" id="qab2"></span></div>
+        <div class="qsbody" id="qap2" style="max-height:120px"></div>
+      </div>
+    </div>
+  </div>
+  <!-- Protocolo Fellow Retina -->
+  <div class="ret-hdr">
+    <span class="ret-ttl">PROTOCOLO FELLOW RETINA</span>
+    <span class="ret-sub">Progresso específico em retina</span>
+  </div>
+  <div class="ret-grid">
+    <div id="ret-aulas"></div>
+    <div id="ret-quest"></div>
+    <div id="ret-flash-div"></div>
+    <div id="ret-side"></div>
+  </div>
+</div>
+
+<div id="aulas" class="panel">
+  <div class="sec">progresso geral — aulas</div>
+  <div class="g4" id="asum"></div>
+  <div class="pb"><div class="pf" id="apf"></div></div>
+  <div id="alist"></div>
+</div>
+
+<div id="questoes" class="panel">
+  <div class="q3">
+    <div class="q3c"><div class="v" id="qft">—</div><div class="l">questões feitas</div></div>
+    <div class="q3c"><div class="v" id="qac">—</div><div class="l">acertadas</div></div>
+    <div class="q3c"><div class="v" id="qpct">—</div><div class="l">aproveitamento</div></div>
+  </div>
+  <div class="qpbar"><div class="qpfill" id="qpf"></div></div>
+  <div class="qlay">
+    <div class="qmc" id="qmc"></div>
+    <div class="qsc">
+      <div class="qsbox">
+        <div class="qshdr">Próximas Revisões <span class="qsbdg qsba" id="qrb"></span></div>
+        <div class="qsbody" id="qrp"></div>
+      </div>
+      <div class="qsbox">
+        <div class="qshdr">Alertas <span class="qsbdg qsbr" id="qab"></span></div>
+        <div class="qsbody" id="qap"></div>
+      </div>
+    </div>
+  </div>
+  <div class="qhtog"><button class="qhbtn" onclick="togQH()">▼ histórico de questões</button><div id="qhist" class="qhinner"></div></div>
+</div>
+
+<div id="semana" class="panel">
+  <div class="sem-wrap" id="sem-wrap">
+    <div id="sem-agenda"></div>
+    <div class="sem-right">
+      <div class="sem-db" id="sem-db">—</div>
+      <!-- Aulas -->
+      <div class="sem-card s-grn">
+        <div class="sem-ct">Aulas</div>
+        <input class="sem-si" id="sem-aq" placeholder="pesquisar aula…" oninput="semASearch(this.value)" onfocus="semAOpen()">
+        <div class="sem-res" id="sem-ar"></div>
+        <div id="sem-asel" style="display:none">
+          <div class="sem-sel-nm" id="sem-asel-nm"></div>
+          <button class="sem-ok" onclick="semAOK()">✓ registrar</button>
+        </div>
+      </div>
+      <!-- Questões -->
+      <div class="sem-card s-pnk">
+        <div class="sem-ct">Questões</div>
+        <input class="sem-si" id="sem-qq" placeholder="pesquisar questão…" oninput="semQSearch(this.value)" onfocus="semQOpen()">
+        <div class="sem-res" id="sem-qr"></div>
+        <div id="sem-qsel" style="display:none">
+          <div class="sem-sel-nm" id="sem-qsel-nm"></div>
+          <div style="display:flex;gap:5px;align-items:center;margin-top:4px;flex-wrap:wrap">
+            <input class="sem-fi" type="number" min="0" placeholder="fez" id="sem-qf" oninput="semQPct()">
+            <span style="font-size:10px;color:var(--tx3)">/</span>
+            <input class="sem-fi" type="number" min="0" placeholder="total" id="sem-qt" oninput="semQPct()">
+            <span id="sem-qpct" style="font-size:10px;color:var(--tx3);min-width:28px">—</span>
+            <button class="sem-ok" onclick="semQOK()">✓ ok</button>
+          </div>
+        </div>
+      </div>
+      <!-- Flashcards -->
+      <div class="sem-card s-blu">
+        <div class="sem-ct">Flashcards</div>
+        <input class="sem-si" id="sem-fq" placeholder="pesquisar assunto…" oninput="semFSearch(this.value)" onfocus="semFOpen()">
+        <div class="sem-res" id="sem-fr"></div>
+        <div id="sem-fsel" style="display:none">
+          <div class="sem-sel-nm" id="sem-fsel-nm"></div>
+          <div style="display:flex;gap:5px;align-items:center;margin-top:4px">
+            <input class="sem-fi" type="number" min="0" placeholder="min" id="sem-fm">
+            <span style="font-size:10px;color:var(--tx3)">min</span>
+            <button class="sem-ok" onclick="semFOK()">✓ ok</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="flashcards" class="panel">
+  <div class="sec">flashcards</div>
+  <div style="font-size:13px;color:var(--tx3);padding:2.5rem;text-align:center;font-family:Georgia,serif">Em desenvolvimento — em breve aqui.</div>
+</div>
+
+<div id="retina" class="panel">
+  <div class="sec">protocolo retina</div>
+  <div class="ret-top">
+    <div class="rbox" id="ret-ctr"></div>
+    <div class="rbox" id="ret-notes-box"></div>
+    <div class="rbox" id="ret-goals-box"></div>
+  </div>
+  <div class="ret-bot">
+    <div class="rbox" id="ret-aulas-tab" style="padding:.75rem 0 .5rem"></div>
+    <div class="rbox" id="ret-quest-tab" style="padding:.75rem 0 .5rem"></div>
+    <div class="ret-rcol">
+      <div class="rbox" id="ret-flash-tab"></div>
+      <div class="rbox" id="ret-rev-tab"></div>
+    </div>
+  </div>
+</div>
+
+<div id="historico" class="panel">
+  <div class="sec">histórico de semanas</div>
+  <div id="hbody" style="font-size:12px;color:var(--tx3);padding:1rem;text-align:center;font-family:'Georgia',serif">Nenhuma semana registrada ainda.</div>
+  <div class="divider"></div>
+  <div class="sec">média geral</div>
+  <div class="g3">
+    <div class="card"><div class="v" id="avga">—</div><div class="l">min/semana</div></div>
+    <div class="card"><div class="v" id="avgq">—</div><div class="l">Questões %</div></div>
+    <div class="card"><div class="v" id="avgf">—</div><div class="l">Flash min/sem</div></div>
+  </div>
+  <div id="avgalert" style="display:none"></div>
+</div>
+
+<!-- Modal: Agendar Revisão -->
+<div class="modal-ov" id="schedModal">
+  <div class="modal-box">
+    <div class="modal-tit" id="schedTit">Questão concluída</div>
+    <div id="schedMsg" style="font-size:12px;color:var(--tx2);font-family:'Georgia',serif;margin:.5rem 0 .75rem;line-height:1.6"></div>
+    <div style="font-size:10px;color:var(--tx3);margin-bottom:.3rem">Que data prefere para a revisão?</div>
+    <input id="schedDat" type="date" class="din" style="margin-bottom:.75rem">
+    <div style="display:flex;gap:.5rem">
+      <button class="bp" onclick="schedConfirm()">Agendar no calendário</button>
+      <button class="bs" onclick="document.getElementById('schedModal').classList.remove('open')">Agora não</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Imprimir Notas Retina -->
+<div class="modal-ov" id="retPrintMod">
+  <div class="modal-box" style="width:640px;max-width:96vw;max-height:88vh;display:flex;flex-direction:column">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;flex-shrink:0" class="no-print-chrome">
+      <div class="modal-tit" style="margin-bottom:0">Notas · Retina</div>
+      <div style="display:flex;gap:8px">
+        <button onclick="window.print()" class="bp" style="font-size:11px;padding:4px 12px">imprimir</button>
+        <button onclick="document.getElementById('retPrintMod').classList.remove('open')" class="bs">fechar</button>
+      </div>
+    </div>
+    <div id="retPrintBody" style="overflow-y:auto;flex:1"></div>
+  </div>
+</div>
+
+<!-- Size Panel -->
+<div id="sz-panel">
+  <div id="sz-hdr">⊞ controle de tamanhos <button onclick="document.getElementById('sz-panel').classList.remove('open')" style="background:none;border:none;cursor:pointer;color:var(--tx3);font-size:14px;line-height:1;padding:0;margin-left:auto">✕</button></div>
+  <div id="sz-tabs">
+    <button class="sz-tab sz-tab-a" data-tab="global" onclick="szSetTab('global')">Geral</button>
+    <button class="sz-tab" data-tab="visao" onclick="szSetTab('visao')">Visão</button>
+    <button class="sz-tab" data-tab="semana" onclick="szSetTab('semana')">Semana</button>
+    <button class="sz-tab" data-tab="aulas" onclick="szSetTab('aulas')">Aulas</button>
+    <button class="sz-tab" data-tab="questoes" onclick="szSetTab('questoes')">Quest.</button>
+    <button class="sz-tab" data-tab="flashcards" onclick="szSetTab('flashcards')">Flash</button>
+    <button class="sz-tab" data-tab="retina" onclick="szSetTab('retina')">Retina</button>
+    <button class="sz-tab" data-tab="historico" onclick="szSetTab('historico')">Hist.</button>
+  </div>
+  <div id="sz-body"></div>
+  <div id="sz-foot">
+    <button onclick="szReset()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd);border-radius:3px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">reset aba</button>
+    <button onclick="szResetAll()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--rbd);border-radius:3px;background:var(--rbg);color:var(--red);font-family:'Courier New',monospace">reset tudo</button>
+  </div>
+</div>
+<!-- Login overlay -->
+<div id="sb-login-ov" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <div style="width:340px;border:1px solid var(--bd2);border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.10)">
+    <div style="background:var(--tx);padding:1.2rem 1.5rem">
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.12em;color:#aaa;text-transform:uppercase;margin-bottom:4px">R3 Oftalmologia</div>
+      <div style="font-family:Georgia,serif;font-size:22px;color:#fff">Dashboard de estudos</div>
+    </div>
+    <div style="padding:1.5rem;background:#fff;display:flex;flex-direction:column;gap:12px">
+      <div>
+        <label style="font-size:10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);display:block;margin-bottom:4px">Email</label>
+        <input id="sb-em" type="email" placeholder="seuemail@exemplo.com" onkeydown="if(event.key==='Enter')document.getElementById('sb-pw').focus()"
+          style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:6px;font-size:13px;font-family:'Courier New',monospace;outline:none">
+      </div>
+      <div>
+        <label style="font-size:10px;font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.06em;color:var(--tx3);display:block;margin-bottom:4px">Senha</label>
+        <input id="sb-pw" type="password" placeholder="mínimo 6 caracteres" onkeydown="if(event.key==='Enter')sbDoLogin()"
+          style="width:100%;padding:8px 10px;border:1px solid var(--bd2);border-radius:6px;font-size:13px;font-family:'Courier New',monospace;outline:none">
+      </div>
+      <div id="sb-err" style="display:none;font-size:11px;color:var(--red);font-family:'Courier New',monospace;padding:6px 8px;background:var(--rbg);border-radius:4px;border:1px solid var(--rbd)"></div>
+      <button id="sb-login-btn" onclick="sbDoLogin()"
+        style="width:100%;padding:10px;background:var(--tx);color:#fff;border:none;border-radius:6px;font-size:12px;font-family:'Courier New',monospace;letter-spacing:.06em;cursor:pointer;text-transform:uppercase">
+        entrar
+      </button>
+      <div style="text-align:center">
+        <button onclick="sbDoSignup()" style="font-size:10px;color:var(--tx3);background:none;border:none;cursor:pointer;font-family:'Courier New',monospace;text-decoration:underline">
+          primeira vez? criar conta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Adicionar Evento -->
+<div class="modal-ov" id="evModal">
+  <div class="modal-box">
+    <div class="modal-tit">Adicionar Evento ao Calendário</div>
+    <div style="display:flex;flex-direction:column;gap:.5rem">
+      <input id="evTit" placeholder="Título (ex: Bico Gravataí)" class="nin">
+      <input id="evDat" type="date" class="din">
+      <div class="modal-row">
+        <input id="evIni" type="time" class="din" style="flex:1">
+        <input id="evFim" type="time" class="din" style="flex:1">
+      </div>
+      <select id="evTipo" class="modal-sel">
+        <option value="bico">Bico</option>
+        <option value="livre">Horário livre</option>
+        <option value="consulta">Consulta</option>
+        <option value="outro">Outro</option>
+      </select>
+      <input id="evNot" placeholder="Observação (opcional)" class="nin">
+    </div>
+    <div style="margin-top:1rem;display:flex;gap:.5rem">
+      <button class="bp" onclick="saveEvent()">Salvar</button>
+      <button class="bs" onclick="closeAddEvent()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const T0=new Date();T0.setHours(0,0,0,0);
+const DS=['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const fD=d=>new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+const td=()=>fD(T0);
+const aDD=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r;};
+
+// ── ROTAÇÕES (fonte: escala PDF) ───────────────────────────────────
+// Colunas = Seg Ter Qua Qui Sex Sáb Dom  (null = LIVRE)
+const ROT={
+  'R3A Vermelho':{rot:'R3A Vermelho',free:6,
+    manha:[null,'CC Córnea',null,'Laser','Retina',null,null],
+    tarde:[null,null,'Faco',null,null,null,null],
+    dicas:{a:'~3 turnos × 55min',q:'40–50 questões',f:'60–80 cards'}},
+  'R3B Verde':{rot:'R3B Verde',free:5,
+    manha:['Retina',null,null,'Neuro',null,null,null],
+    tarde:['Faco','CC Retina',null,'Glaucoma',null,null,null],
+    dicas:{a:'~2 turnos = 110min',q:'30–40 questões',f:'50–60 cards'}},
+  'R3 Amarelo':{rot:'R3 Amarelo',free:4,
+    manha:[null,'Ped','Cx Est','Estrab','Córnea',null,null],
+    tarde:[null,null,'Córnea',null,'Faco',null,null],
+    dicas:{a:'~2 turnos = 110min',q:'~25 questões',f:'40 cards'}},
+  'R3A Verde':{rot:'R3A Verde',free:5,
+    manha:['Emer',null,'Glauc',null,null,'Faco',null],
+    tarde:['Glaucoma','CC Glau',null,null,'Uveíte',null,null],
+    dicas:{a:'~2 turnos = 110min',q:'30–40 questões',f:'50–60 cards'}},
+  'R3B Vermelho':{rot:'R3B Vermelho',free:5,
+    manha:[null,'Plástica',null,'CC Retina','Faco',null,null],
+    tarde:[null,null,'Retina','CC Plástica',null,null,null],
+    dicas:{a:'~2 turnos = 110min',q:'30–40 questões',f:'50–60 cards'}},
+};
+
+// Períodos: [início, chave ROT, módulo de estudo, crítico]
+const ROT_PERIODS=[
+  [new Date(2026,5,8),  'R3A Vermelho','Glaucoma',        false],
+  [new Date(2026,5,22), 'R3B Verde',  'Glaucoma/Uveítes', true],
+  [new Date(2026,6,27), 'R3 Amarelo', 'Óptica',           true],
+  [new Date(2026,7,31), 'R3A Verde',  'Retina bases',     true],
+  [new Date(2026,9,5),  'R3B Vermelho','Retina',          true],
+  [new Date(2026,10,9), 'R3B Verde',  'Revisão',          true],
+  [new Date(2026,11,14),'R3 Amarelo', 'Revisão geral',    true],
+  [new Date(2027,0,25), 'R3A Vermelho','Pós-prova',       false],
+];
+
+function getRotP(d){
+  let p=ROT_PERIODS[0];
+  for(let i=ROT_PERIODS.length-1;i>=0;i--){if(d>=ROT_PERIODS[i][0]){p=ROT_PERIODS[i];break;}}
+  return p;
+}
+
+const WEEKS=(()=>{
+  const MN=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const D=86400000;
+  const fmt=d=>d.getDate().toString().padStart(2,'0')+'/'+MN[d.getMonth()];
+  const arr=[];
+  let cur=new Date(2026,4,4); // começa em maio para testes
+  const stop=new Date(2027,0,25);
+  while(cur<=stop){
+    const p=getRotP(cur),t=ROT[p[1]];
+    const dates=Array.from({length:7},(_,i)=>fmt(new Date(cur.getTime()+i*D)));
+    const id='w'+fmt(cur).replace('/','');
+    arr.push({id,label:dates[0]+'–'+dates[6],mod:p[2],rot:t.rot,free:t.free,
+      crit:p[3]&&cur.getTime()===p[0].getTime(),
+      start:new Date(cur),dicas:t.dicas,dates,
+      manha:t.manha,tarde:t.tarde,
+      bico:[false,false,false,false,false,false,false]});
+    cur=new Date(cur.getTime()+7*D);
+  }
+  return arr;
+})();
+
+const AULAS=[
+  {id:'orbita',label:'Órbita',color:'var(--grn)',initDone:true,aulas:[{n:'Abertura e Bases',min:35},{n:'Inervação e vascularização',min:26},{n:'Anomalias congênitas',min:24},{n:'Doença ocular tireoidiana',min:48},{n:'Orbitopatia inflamatória e infecciosa',min:35},{n:'Tumores orbitários benignos da infância',min:48},{n:'Tumores orbitários malignos da infância',min:22},{n:'Tumores orbitários benignos do adulto',min:23},{n:'Tumores orbitários malignos do adulto',min:18},{n:'Tumores epiteliais da glândula lacrimal',min:14},{n:'Evisceração, enucleação e cavidade anoftálmica',min:24},{n:'[Emerg] Atendimento inicial no PS I',min:33},{n:'[Emerg] Atendimento inicial no PS II',min:35},{n:'[Emerg] Trauma orbitário',min:49},{n:'[Emerg] Queimadura química ocular',min:30},{n:'[Emerg] Classificação de BETT',min:12},{n:'[Emerg] Trauma aberto: laceração córnea/esclera',min:45},{n:'[Emerg] Trauma fechado segmento anterior',min:44}]},
+  {id:'cornea',label:'Córnea, Conjuntiva e Esclera',color:'var(--grn)',initDone:true,aulas:[{n:'Anatomia e fisiologia I',min:27},{n:'Anatomia e fisiologia II',min:22},{n:'Embriologia',min:30},{n:'PUK e Mooren',min:28},{n:'Outras ceratites',min:28},{n:'Ceratite bacteriana',min:22},{n:'Ceratite fúngica',min:13},{n:'Ceratite Acanthamoeba',min:12},{n:'Ceratite herpética',min:27},{n:'Herpes zoster oftálmico',min:11},{n:'Alergia Ocular',min:30},{n:'Farmacologia AINE, Anti-alérgicos',min:12},{n:'Distrofias do epitélio da córnea',min:17},{n:'Distrofias epiteliais-estromais',min:16},{n:'Distrofias do estroma da córnea',min:10},{n:'Distrofias do endotélio da córnea',min:18},{n:'Ectasias da córnea I',min:33},{n:'Ectasias da córnea II',min:34},{n:'Degeneração da córnea',min:27},{n:'Banco de olhos e transplante de córnea',min:31},{n:'Transplantes lamelares',min:45},{n:'Transplantes penetrantes',min:38},{n:'Bases da conjuntiva, limbo e tenon',min:30},{n:'Síndromes foliculares',min:39},{n:'Outras doenças da conjuntiva',min:17},{n:'Bases de esclera',min:25},{n:'Esclerites e episclerites',min:25},{n:'Pterígio',min:38}]},
+  {id:'cristalino',label:'Cristalino',color:'var(--grn)',initDone:true,aulas:[{n:'Bases do cristalino',min:39},{n:'Pré-operatório',min:37},{n:'Alterações congênitas I',min:22},{n:'Alterações congênitas II',min:28},{n:'Cataratas especiais e fatores de risco',min:21},{n:'Bloqueios anestésicos',min:41},{n:'Viscoelásticos',min:13},{n:'Fluídica e aparelho de facoemulsificação',min:54},{n:'Lentes intraoculares',min:39},{n:'Técnicas de fratura',min:13},{n:'Complicações perioperatórias I',min:39},{n:'Complicações perioperatórias II',min:27},{n:'Complicações pós-operatórias',min:25}]},
+  {id:'neuro',label:'Neuroftalmologia',color:'var(--grn)',initDone:true,aulas:[{n:'Anatomia das vias ópticas',min:53},{n:'Alterações congênitas do nervo óptico',min:37},{n:'III, IV e VI par craniano I',min:33},{n:'III, IV e VI par craniano II',min:26},{n:'Síndromes pupilares',min:60},{n:'Neuropatias ópticas',min:50},{n:'Neuropatias ópticas isquêmicas',min:27},{n:'Neuropatia óptica tóxica e carencial',min:26},{n:'Neuropatia óptica hereditária',min:25},{n:'Nistagmos',min:24},{n:'Papiledema',min:14},{n:'Hipertensão intracraniana idiopática',min:18},{n:'Miopatias oculares',min:40}]},
+  {id:'glaucoma',label:'Glaucoma',color:'var(--amb)',initDone:false,aulas:[{n:'Bases de glaucoma – HA e seio camerular',min:40,initDone:true},{n:'Tonometria',min:15,initDone:true},{n:'Nervo óptico glaucomatoso',min:20,initDone:true},{n:'Campo visual 1',min:40,initDone:true},{n:'Campo visual 2',min:33,initDone:true},{n:'Avaliação estrutural',min:36,initDone:true},{n:'Relação estrutura-função',min:12,initDone:true},{n:'GPAA, HO, GPN',min:34},{n:'Glaucoma pigmentar e pseudoexfoliativo',min:27},{n:'GNV',min:19},{n:'GPAF',min:37},{n:'Síndrome ICE',min:14},{n:'Glaucoma congênito primário',min:24},{n:'Neurocristopatias',min:22},{n:'Glaucoma pós-trabecular',min:17},{n:'Glaucomas rel. ao cristalino e hemorragias',min:24},{n:'Outros glaucomas secundários',min:17},{n:'Tratamento clínico do glaucoma',min:26},{n:'Tratamento clínico do glaucoma II',min:23},{n:'Tratamento laser em glaucoma',min:31},{n:'Procedimentos ciclo-destrutivos',min:11},{n:'Trabeculectomia 1',min:30},{n:'Trabeculectomia 2',min:26},{n:'Implantes de drenagem',min:22},{n:'MIGS',min:40}]},
+  {id:'uveites',label:'Uveítes',color:'var(--tx3)',initDone:false,aulas:[{n:'Bases do trato uveal: íris',min:22},{n:'Bases: corpo ciliar',min:13},{n:'Bases: coroide',min:16},{n:'Uveítes nas espondiloartropatias',min:18},{n:'Uveítes na artrite idiopática juvenil',min:18},{n:'Outras uveítes anteriores',min:31},{n:'Uveíte intermediária',min:13},{n:'Uveíte posterior: toxoplasmose',min:27},{n:'Uveíte posterior: toxo congênita',min:12},{n:'Uveíte posterior: sífilis adquirida',min:15},{n:'Uveíte posterior: sífilis congênita',min:5},{n:'Uveíte posterior: tuberculose',min:20},{n:'Uveítes posteriores: virais',min:27},{n:'Uveítes posteriores: toxocaríase e DUSN',min:20},{n:'Síndrome dos pontos brancos',min:36},{n:'Uveíte difusa: Harada e Oftalmia simpática',min:22},{n:'Uveíte difusa: Behçet',min:14},{n:'Uveítes difusas: Sarcoidose',min:14}]},
+  {id:'optica',label:'Óptica, Refração e VSN',color:'var(--tx3)',initDone:false,aulas:[{n:'Conceitos iniciais',min:26},{n:'Interação da luz: refração',min:43},{n:'Reflexão, filtração e polarização',min:18},{n:'Difração e interferência',min:13},{n:'Introdução às lentes',min:17},{n:'Vergência, objeto e imagem',min:36},{n:'Espelhos planos e esféricos',min:29},{n:'Aberrações ópticas',min:20},{n:'Óptica dos prismas',min:35},{n:'Acuidade visual',min:42},{n:'Acomodação',min:27},{n:'Ponto próximo e ponto remoto',min:24},{n:'Esquiascopia',min:32},{n:'Miopia e hipermetropia',min:65},{n:'Astigmatismo',min:51},{n:'Anisometropia',min:10},{n:'Material das lentes e tratamentos',min:34},{n:'Óptica dos bifocais e multifocais',min:31},{n:'Causas de insatisfação com óculos',min:38},{n:'Definições e avaliação VSN',min:65},{n:'Magnificação',min:15},{n:'Auxílios ópticos',min:30},{n:'Auxílios ópticos II',min:32},{n:'Refração na prática: AV',min:15},{n:'Refração na prática: verde e vermelho',min:3},{n:'Balanço refratométrico',min:4},{n:'Casos clínicos em refração',min:60}]},
+  {id:'retina',label:'Retina e Vítreo',color:'var(--red)',initDone:false,aulas:[{n:'Bases de vítreo',min:33,initDone:true},{n:'Bases de retina',min:55,initDone:true},{n:'Autofluorescência',min:14,initDone:true},{n:'Angiografia fluoresceínica',min:20,initDone:true},{n:'Angiografia indoc. Verde',min:19,initDone:true},{n:'OCT',min:23,initDone:true},{n:'OCT-A',min:14,initDone:true},{n:'Retinopatia diabética',min:55},{n:'Retinopatia hipertensiva',min:19},{n:'Oclusões venosas',min:30,initDone:true},{n:'Oclusões arteriais',min:24,initDone:true},{n:'Retinopatia falciforme',min:19},{n:'Retinopatia da prematuridade',min:21},{n:'Outras doenças vasculares',min:21},{n:'DMRI',min:45},{n:'Anti-VEGF',min:23},{n:'Miopia patológica',min:17},{n:'Estrias angioides',min:11},{n:'Coriorretinopatia serosa central',min:18},{n:'Anormalidades periféricas da retina',min:25},{n:'Descolamento de retina regmatogênico',min:25},{n:'Retinopexia pneumática',min:8},{n:'Introflexão escleral',min:10},{n:'Vitrectomia posterior',min:15},{n:'[Emerg] Trauma aberto',min:35},{n:'Eletrofisiologia',min:30,initDone:true},{n:'Toxicidade por fármacos',min:18,initDone:true},{n:'Doenças da interface vitreorretiniana',min:22},{n:'Distrofias difusas da retina e da coroide',min:35},{n:'Distrofias maculares',min:25},{n:'[Emerg] Trauma fechado',min:25}]},
+  {id:'oncologia',label:'Oncologia Ocular',color:'var(--tx3)',initDone:false,aulas:[{n:'Retinoblastoma',min:40},{n:'Melanoma de coroide',min:41},{n:'Facomatoses',min:28},{n:'Lesões pigmentares do seg. posterior',min:19},{n:'Tumores epibulbares benignos',min:20},{n:'Tumores epibulbares malignos',min:23},{n:'Lesões pigmentadas da superfície ocular',min:23},{n:'Metástase intraocular',min:6},{n:'Linfoma intraocular',min:7}]},
+  {id:'plastica',label:'Plástica Ocular e Vias Lacrimais',color:'var(--tx3)',initDone:false,aulas:[{n:'Bases de plástica ocular',min:39},{n:'Anomalias congênitas das pálpebras',min:22},{n:'Doenças dos cílios e inflamatórias',min:27},{n:'Entrópio',min:16},{n:'Ectrópio',min:19},{n:'Exérese de calázio',min:9},{n:'Entrópio – cirurgia',min:13},{n:'Ectrópio – cirurgia',min:9},{n:'Fios cirúrgicos',min:10},{n:'Trauma e reconstrução palpebral',min:18},{n:'Ptose palpebral e pseudoptose',min:27},{n:'Tumores palpebrais benignos',min:8},{n:'Tumores palpebrais malignos',min:16},{n:'CX bléfaro superior',min:10},{n:'CV Refixação anterior',min:12},{n:'Bases do sistema lacrimal I',min:21},{n:'Bases do sistema lacrimal II',min:25},{n:'Olho seco',min:44},{n:'Bases do sistema lacrimal III',min:23},{n:'Propedêutica das vias lacrimais',min:19},{n:'Patologia das vias lacrimais I',min:11},{n:'Patologia das vias lacrimais II',min:11},{n:'Patologia das vias lacrimais III',min:19},{n:'CV – Vias lacrimais',min:22}]},
+  {id:'estrabismo',label:'Estrabismo',color:'var(--tx3)',initDone:false,aulas:[{n:'Bases dos músculos extraoculares',min:26},{n:'Propedêutica motora',min:21},{n:'Propedêutica sensorial',min:33},{n:'Adaptações sensoriais e motoras',min:20},{n:'Ambliopia',min:19},{n:'Esotropia',min:24},{n:'Exotropia',min:19},{n:'Variações alfabéticas e desvios verticais',min:24},{n:'Síndromes especiais',min:24},{n:'Noções cirúrgicas em estrabismo',min:19}]},
+  {id:'embriologia',label:'Embriologia',color:'var(--tx3)',initDone:false,aulas:[{n:'Embriologia do segmento anterior',min:57},{n:'Embriologia do segmento posterior',min:42}]},
+  {id:'cirrефrat',label:'Cirurgia Refrativa',color:'var(--tx3)',initDone:false,aulas:[{n:'Conceitos básicos',min:41},{n:'RK e PRK',min:45},{n:'LASIK',min:52},{n:'SMILE',min:38},{n:'[Emerg] Baixa visual aguda',min:20}]},
+  {id:'lentes',label:'Lentes de Contato',color:'var(--tx3)',initDone:false,aulas:[{n:'Conceitos básicos',min:30},{n:'Cuidados e manutenção das lentes',min:27},{n:'LCR',min:38},{n:'LC no ceratocone',min:22},{n:'Lentes gelatinosas e para presbiopia',min:24},{n:'[Emerg] Olho vermelho e dor ocular',min:16}]},
+  {id:'farmaco',label:'Farmacologia',color:'var(--tx3)',initDone:false,aulas:[{n:'Conservantes e corantes',min:18},{n:'Anestésicos locais',min:17},{n:'Cicloplégicos e midriáticos',min:17},{n:'ATB',min:29},{n:'Antivirais',min:14},{n:'Antifúngicos',min:12},{n:'[Emerg] Diplopia aguda',min:15}]},
+  {id:'genetica',label:'Genética Ocular',color:'var(--tx3)',initDone:false,aulas:[{n:'Princípios básicos',min:22},{n:'Padrões de herança',min:28}]},
+];
+
+// Cronograma OFT — início em 09/03/2026 (semana 1)
+// Minutos = soma das aulas do AULAS[] que pertencem a cada semana
+const PROG_START=new Date(2026,2,9);
+const WK_SCHED=[
+  {n:1, mod:'Órbita',                         min:236},
+  {n:2, mod:'Órbita',                         min:198},
+  {n:3, mod:'Córnea, Conjuntiva e Esclera',   min:165},
+  {n:4, mod:'Córnea, Conjuntiva e Esclera',   min:127},
+  {n:5, mod:'Córnea, Conjuntiva e Esclera',   min:140},
+  {n:6, mod:'Córnea, Conjuntiva e Esclera',   min:186},
+  {n:7, mod:'Córnea, Conjuntiva e Esclera',   min:174},
+  {n:8, mod:'Cristalino',                     min:201},
+  {n:9, mod:'Cristalino',                     min:197},
+  {n:10,mod:'Neuroftalmologia',               min:149},
+  {n:11,mod:'Neuroftalmologia',               min:137},
+  {n:12,mod:'Neuroftalmologia',               min:147},
+  {n:13,mod:'Glaucoma',                       min:196},
+  {n:14,mod:'Glaucoma',                       min:117},
+  {n:15,mod:'Glaucoma',                       min:118},
+  {n:16,mod:'Glaucoma',                       min:209},
+  {n:17,mod:'Uveítes',                        min:175},
+  {n:18,mod:'Uveítes',                        min:126},
+  {n:19,mod:'Uveítes',                        min:86},
+  {n:20,mod:'Óptica, Refração e VSN',         min:202},
+  {n:21,mod:'Óptica, Refração e VSN',         min:160},
+  {n:22,mod:'Óptica, Refração e VSN',         min:229},
+  {n:23,mod:'Óptica, Refração e VSN',         min:224},
+  {n:24,mod:'Retina e Vítreo',                min:178},
+  {n:25,mod:'Retina e Vítreo',                min:168},
+  {n:26,mod:'Retina e Vítreo',                min:135},
+  {n:27,mod:'Retina e Vítreo',                min:118},
+  {n:28,mod:'Retina e Vítreo',                min:155},
+  {n:29,mod:'Oncologia Ocular',               min:128},
+  {n:30,mod:'Oncologia Ocular',               min:79},
+  {n:31,mod:'Plástica Ocular e Vias Lacrimais',min:154},
+  {n:32,mod:'Plástica Ocular e Vias Lacrimais',min:101},
+  {n:33,mod:'Plástica Ocular e Vias Lacrimais',min:154},
+  {n:34,mod:'Estrabismo',                     min:100},
+  {n:35,mod:'Estrabismo · Embriologia',       min:161},
+  {n:36,mod:'Estrabismo · Genética',          min:117},
+  {n:37,mod:'Cirurgia Refrativa',             min:196},
+  {n:38,mod:'Lentes de Contato',              min:157},
+  {n:39,mod:'Farmacologia',                   min:122},
+];
+
+const Q_MODS=[
+  {id:'orb',lb:'Órbita',op:true,as:[{id:'o1',n:'Bases de órbita'},{id:'o2',n:'Anomalias congênitas'},{id:'o3',n:'Orbitopatia Disteroidiana'},{id:'o4',n:'Tumores orbitários benignos inf.'},{id:'o5',n:'Tumores orbitários malignos inf.'},{id:'o6',n:'Tumores orbitários do adulto'},{id:'o7',n:'Miscelânea, cav anoftálmica e trauma'},{id:'o8',n:'Orbitopatias inflamatórias'}],bl:[{id:'os1',n:'Semana 01'},{id:'os2',n:'Semana 02'}]},
+  {id:'cor',lb:'Córnea, Conjuntiva e Esclera',op:false,as:[{id:'c1',n:'Bases de córnea'},{id:'c2',n:'PUK e Mooren'},{id:'c3',n:'Outras ceratites'},{id:'c4',n:'Ceratites bacterianas'},{id:'c5',n:'Ceratite herpética e HZO'},{id:'c6',n:'Ceratite fúngica e Acanthamoeba'},{id:'c7',n:'Alergia ocular'},{id:'c8',n:'Distrofia epitélio corneano'},{id:'c9',n:'Distrofia estroma corneano'},{id:'c10',n:'Distrofia endotélio corneano'},{id:'c11',n:'Degenerações corneanas'},{id:'c12',n:'Ectasias corneanas'},{id:'c13',n:'Banco de Olhos e Tx de córnea'},{id:'c14',n:'Transplante lamelar'},{id:'c15',n:'Base conjuntiva, limbo e tenon'},{id:'c16',n:'Síndromes foliculares'},{id:'c17',n:'Outras doenças da conjuntiva'},{id:'c18',n:'Bases de esclera'},{id:'c19',n:'Esclerite e episclerite'},{id:'c20',n:'Outras doenças da córnea'},{id:'c21',n:'Trauma de córnea'}],bl:[{id:'cs1',n:'Semana 01'},{id:'cs2',n:'Semana 02'},{id:'cs3',n:'Semana 03'},{id:'cs4',n:'Semana 04'},{id:'cs5',n:'Semana 05'}]},
+  {id:'cat',lb:'Cristalino e Catarata',op:false,as:[{id:'k1',n:'Bases do cristalino'},{id:'k2',n:'Alterações congênitas'},{id:'k3',n:'Fatores de risco e cat. especiais'},{id:'k4',n:'Pré-op, viscoelásticos e anestesia'},{id:'k5',n:'Fluídica e aparelho de faco'},{id:'k6',n:'Técnica cirúrgica'},{id:'k7',n:'Complicações periop. e pós-op'},{id:'k8',n:'Lentes intraoculares'}],bl:[{id:'ks1',n:'Semana 01'},{id:'ks2',n:'Semana 02'}]},
+  {id:'neu',lb:'Neuroftalmologia',op:false,as:[{id:'n1',n:'Anatomia das vias ópticas'},{id:'n2',n:'III, IV e VI pares cranianos'},{id:'n3',n:'Síndromes pupilares'},{id:'n4',n:'Anomalias congênitas'},{id:'n5',n:'Neurites ópticas'},{id:'n6',n:'Neurites ópticas isquêmicas'},{id:'n7',n:'Neuropatias tóxicas e carenciais'},{id:'n8',n:'Neuropatias hereditárias'},{id:'n9',n:'Miopatias oculares'},{id:'n10',n:'Papiledema e pseudotumor cerebral'},{id:'n11',n:'Nistagmo'}],bl:[{id:'ns1',n:'Semana 01'},{id:'ns2',n:'Semana 02'},{id:'ns3',n:'Semana 03'}]},
+  {id:'gla',lb:'Glaucoma',op:false,as:[{id:'g1',n:'Bases de glaucoma'},{id:'g2',n:'Campo visual'},{id:'g3',n:'GDx, HRT e OCT'},{id:'g4',n:'GPAA, HO, GPN'},{id:'g5',n:'Gl pigmentar e pseudoexfoliativo'},{id:'g6',n:'Glaucoma de ângulo fechado'},{id:'g7',n:'Glaucoma neovascular'},{id:'g8',n:'ICE syndrome'},{id:'g9',n:'Neurocristopatia'},{id:'g10',n:'Glaucoma congênito primário'},{id:'g11',n:'Glaucoma pós-trabecular'},{id:'g12',n:'Outros glaucomas secundários'},{id:'g13',n:'Terapia medicamentosa'},{id:'g14',n:'Terapia laser'},{id:'g15',n:'Trabeculectomia'},{id:'g16',n:'Implante de tubo'}],bl:[{id:'gs1',n:'Semana 01'},{id:'gs2',n:'Semana 02'},{id:'gs3',n:'Semana 03'},{id:'gs4',n:'Semana 04'}]},
+  {id:'uve',lb:'Uveítes',op:false,as:[{id:'u1',n:'Bases de íris'},{id:'u2',n:'Bases de corpo ciliar'},{id:'u3',n:'Bases de coroide'},{id:'u4',n:'Uveítes nas espondiloartropatias'},{id:'u5',n:'Outras uveítes anteriores'},{id:'u6',n:'Uveíte por Toxo, Sífilis e TB'},{id:'u7',n:'Uveítes virais'},{id:'u8',n:'Harada e Oftalmia simpática'},{id:'u9',n:'Behçet e Sarcoidose'},{id:'u10',n:'Coroidite não infecciosa'},{id:'u11',n:'Uveíte na AIJ'},{id:'u12',n:'Uveíte intermediária'},{id:'u13',n:'Toxocaríase e DUSN'}],bl:[{id:'us1',n:'Semana 01'},{id:'us2',n:'Semana 02'},{id:'us3',n:'Semana 03'}]},
+  {id:'opt',lb:'Óptica, Refração e VSN',op:false,as:[{id:'p1',n:'Óptica'},{id:'p2',n:'Propriedades da luz'},{id:'p3',n:'Interação luz/materiais'},{id:'p4',n:'Interação luz/arestas'},{id:'p5',n:'Lentes e espelhos'},{id:'p6',n:'Vergência, objeto e imagem'},{id:'p7',n:'Prismas'},{id:'p8',n:'Aberrações ópticas'},{id:'p9',n:'Refração'},{id:'p10',n:'Acuidade visual'},{id:'p11',n:'Acomodação'},{id:'p12',n:'Ponto próximo e remoto'},{id:'p13',n:'Retinoscopia'},{id:'p14',n:'Miopia'},{id:'p15',n:'Hipermetropia'},{id:'p16',n:'Astigmatismo'},{id:'p17',n:'Anisometropia'},{id:'p18',n:'Equivalente esférico'},{id:'p19',n:'Material das lentes'},{id:'p20',n:'Bifocais e multifocais'},{id:'p21',n:'Visão subnormal'}],bl:[{id:'ps1',n:'Semana 01'},{id:'ps2',n:'Semana 02'},{id:'ps3',n:'Semana 03'},{id:'ps4',n:'Semana 04'}]},
+  {id:'ret',lb:'Retina e Vítreo',op:false,as:[{id:'r1',n:'Bases de vítreo'},{id:'r2',n:'Bases de retina'},{id:'r3',n:'Exame de imagem'},{id:'r4',n:'Estudos eletrofisiológicos'},{id:'r5',n:'Retinopatia diabética'},{id:'r6',n:'Oclusões vasculares'},{id:'r7',n:'Retinopatia hipertensiva'},{id:'r8',n:'Retinopatia falciforme'},{id:'r9',n:'Retinopatia da prematuridade'},{id:'r10',n:'Outras doenças vasculares'},{id:'r11',n:'DMRI'},{id:'r12',n:'Miopia patológica e estrias angioides'},{id:'r13',n:'Coriorretinopatia serosa central'},{id:'r14',n:'Descolamento de retina'},{id:'r15',n:'VVPP, IE e Pneumática'},{id:'r16',n:'Doenças da interface vitreorretiniana'},{id:'r17',n:'Distrofia difusa retina/coroide'},{id:'r18',n:'Distrofias maculares'},{id:'r19',n:'Trauma retina e coroide'},{id:'r20',n:'Opacidades vítreas'},{id:'r21',n:'Anomalias congênitas'},{id:'r22',n:'Endoftalmite'},{id:'r23',n:'Outras patologias da retina'}],bl:[{id:'rs1',n:'Semana 01'},{id:'rs2',n:'Semana 02'},{id:'rs3',n:'Semana 03'},{id:'rs4',n:'Semana 04'},{id:'rs5',n:'Semana 05'}]},
+  {id:'tum',lb:'Tumores / Oncologia',op:false,as:[{id:'t1',n:'Retinoblastoma'},{id:'t2',n:'Melanoma de coroide'},{id:'t3',n:'Facomatoses'},{id:'t4',n:'Tumores epibulbares malignos'},{id:'t5',n:'Tumores epibulbares benignos'},{id:'t6',n:'Lesão pigmentada da superfície ocular'},{id:'t7',n:'Outros tumores intraoculares'}],bl:[{id:'ts1',n:'Semana 01'},{id:'ts2',n:'Semana 02'}]},
+  {id:'pla',lb:'Plástica Ocular e Vias Lacrimais',op:false,as:[{id:'pl1',n:'Bases de plástica'},{id:'pl2',n:'Anomalias congênitas das pálpebras'},{id:'pl3',n:'Doença dos cílios e inflamatórias'},{id:'pl4',n:'Ptose da pálpebra e supercílio'},{id:'pl5',n:'Entrópio'},{id:'pl6',n:'Ectrópio'},{id:'pl7',n:'Trauma e reconstrução palpebral'},{id:'pl8',n:'Tumores palpebrais'},{id:'pl9',n:'Bases de sistema lacrimal'},{id:'pl10',n:'Propedêutica das vias de drenagem'},{id:'pl11',n:'Afecções das vias de drenagem'},{id:'pl12',n:'Síndrome de Sjogren'},{id:'pl13',n:'Outros em plástica'},{id:'pl14',n:'Blefaroplastia'},{id:'pl15',n:'Síndrome das pálpebras frouxas'}],bl:[{id:'pls1',n:'Semana 01'},{id:'pls2',n:'Semana 02'},{id:'pls3',n:'Semana 03'}]},
+  {id:'est',lb:'Estrabismo',op:false,as:[{id:'e1',n:'Bases de estrabismo'},{id:'e2',n:'Ambliopia'},{id:'e3',n:'Desvios verticais e alfabéticos'},{id:'e4',n:'Síndromes especiais'},{id:'e5',n:'Noções cirúrgicas'},{id:'e6',n:'Esotropias'},{id:'e7',n:'Exotropias'},{id:'e8',n:'Propedêutica motora'},{id:'e9',n:'Propedêutica sensorial'},{id:'e10',n:'Adaptações motoras e sensoriais'}],bl:[{id:'es1',n:'Semana 01'},{id:'es2',n:'Semana 02'},{id:'es3',n:'Semana 03'}]},
+  {id:'crf',lb:'Cirurgia Refrativa',op:false,as:[{id:'cr1',n:'Cirurgia refrativa'}],bl:[{id:'crs1',n:'Semana 01'}]},
+  {id:'lc',lb:'Lentes de Contato',op:false,as:[{id:'lc1',n:'Lentes de contato'}],bl:[{id:'lcs1',n:'Semana 01'}]},
+  {id:'far',lb:'Farmacologia',op:false,as:[{id:'f1',n:'Outros'},{id:'f2',n:'Conceitos gerais'},{id:'f3',n:'Cloroquina'},{id:'f4',n:'Corantes vitais'},{id:'f5',n:'Hipotensores oculares'},{id:'f6',n:'Atb, antifúngicos e antivirais'},{id:'f7',n:'Anestésicos'},{id:'f8',n:'Cicloplégicos e midriáticos'},{id:'f9',n:'Conservantes'},{id:'f10',n:'Corticoide e AINE'},{id:'f11',n:'Pilocarpina e Carbacol'},{id:'f12',n:'Anti-VEGF'},{id:'f13',n:'Mitomicina e 5-Fluor'}],bl:[{id:'fs1',n:'Semana 01'}]},
+];
+
+// ── STATE ──────────────────────────────────────────────────────────
+let QS={},QH=[],AC={},DD={};
+const _qClearNext=new Set(),_qNewSess=new Set();
+try{const s=localStorage.getItem('rq6_s');if(s)QS=JSON.parse(s);}catch(e){}
+try{const s=localStorage.getItem('rq6_h');if(s)QH=JSON.parse(s);}catch(e){}
+try{const s=localStorage.getItem('dc_ac');if(s)AC=JSON.parse(s);}catch(e){}
+try{const s=localStorage.getItem('dc_dd');if(s)DD=JSON.parse(s);}catch(e){}
+function svQ(){try{localStorage.setItem('rq6_s',JSON.stringify(QS));localStorage.setItem('rq6_h',JSON.stringify(QH));}catch(e){}sbSync('rq6_s',QS);sbSync('rq6_h',QH);}
+function svAC(){try{localStorage.setItem('dc_ac',JSON.stringify(AC));}catch(e){}sbSync('dc_ac',AC);}
+function svDD(){try{localStorage.setItem('dc_dd',JSON.stringify(DD));}catch(e){}}
+
+let SLOG=[];
+try{const s=localStorage.getItem('slog');if(s)SLOG=JSON.parse(s);}catch(e){}
+function svSLOG(){try{localStorage.setItem('slog',JSON.stringify(SLOG));}catch(e){}sbSync('slog',SLOG);}
+
+let CEV=[];
+try{const s=localStorage.getItem('cal_ev');if(s)CEV=JSON.parse(s);}catch(e){}
+function svCEV(){try{localStorage.setItem('cal_ev',JSON.stringify(CEV));}catch(e){}sbSync('cal_ev',CEV);}
+
+let RFLASH={metaMin:500,sessions:[]};
+try{const s=localStorage.getItem('ret_flash');if(s)RFLASH=JSON.parse(s);}catch(e){}
+function svRFLASH(){try{localStorage.setItem('ret_flash',JSON.stringify(RFLASH));}catch(e){}sbSync('ret_flash',RFLASH);}
+
+let RNOTES={};
+try{const s=localStorage.getItem('ret_notes');if(s)RNOTES=JSON.parse(s);}catch(e){}
+function svRNOTES(){try{localStorage.setItem('ret_notes',JSON.stringify(RNOTES));}catch(e){}sbSync('ret_notes',RNOTES);}
+let RGOALS={aulMin:25,flashMin:15,questN:20};
+try{const s=localStorage.getItem('ret_goals');if(s)RGOALS=Object.assign(RGOALS,JSON.parse(s));}catch(e){}
+function svRGOALS(){try{localStorage.setItem('ret_goals',JSON.stringify(RGOALS));}catch(e){}sbSync('ret_goals',RGOALS);}
+
+const FRASES=[
+  '"Não é o que acontece que perturba, mas o juízo sobre o que acontece." — Epicteto',
+  '"Tens poder sobre a tua mente, não sobre eventos externos. Percebe isso e encontrarás força." — Marco Aurélio',
+  '"A felicidade da tua vida depende da qualidade dos teus pensamentos." — Marco Aurélio',
+  '"Perde tempo quem vai à busca do tempo." — Séneca',
+  '"Enquanto adiamos, a vida avança." — Séneca',
+  '"Não existe vento favorável para quem não sabe aonde vai." — Séneca',
+  '"Não tornes o teu caminho mais difícil do que é." — Marco Aurélio',
+  '"Sofre agora e vive o resto da vida como quem merece." — Adaptado',
+  '"A primeira passo para a sapiência é ter momento fixo para estudar." — Séneca',
+  '"Não peças que as coisas aconteçam como queres; deseja que aconteçam como são." — Epicteto',
+  '"Age bem agora; o futuro já está sendo escrito." — Marco Aurélio',
+  '"Nada te perturbará se souberes de onde vieste e para onde vais." — Marco Aurélio',
+  '"A dificuldade é o que desperta o talento." — Horácio',
+  '"Quem não tem porto de destino, nenhum vento lhe é favorável." — Séneca',
+  '"A disciplina é a liberdade. A preguiça é a prisão." — Adaptado estoico',
+  '"Faze cada ato como se fosse o último da tua vida." — Marco Aurélio',
+  '"A mente que resiste ao prazer imediato governa o seu futuro." — Epicteto',
+  '"Divide o que parece difícil em partes; cada parte torna-se possível." — Marco Aurélio',
+  '"O obstáculo é o caminho." — Marco Aurélio',
+  '"Nunca deixes para amanhã o que podes fazer hoje com excelência." — Adaptado',
+  '"Não temas o trabalho. Teme o arrependimento de não ter trabalhado." — Adaptado estoico',
+];
+document.getElementById('frase-mot').textContent=FRASES[Math.floor(T0.getTime()/86400000)%FRASES.length];
+
+function initAC(){
+  AULAS.forEach(m=>{AC[m.id]={};m.aulas.forEach((a,i)=>{AC[m.id][i]=m.initDone||a.initDone||false;});});
+}
+if(!Object.keys(AC).length)initAC();
+
+// ── TABS ──────────────────────────────────────────────────────────
+let tBlt={visao:true};
+function showTab(id,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  el.classList.add('active');
+  if(!tBlt[id]){buildP(id);tBlt[id]=true;}
+  else if(id==='semana')renderSemAgenda();
+  if(id==='questoes')buildQSide();
+  if(id==='historico')buildHist();
+  if(id==='retina')buildRetinaTab();
+}
+function buildP(id){
+  const f={semana:buildSemana,aulas:buildAulas,questoes:buildQuestoes,flashcards:buildFlash,historico:buildHist,retina:buildRetinaTab};
+  if(f[id])f[id]();
+}
+
+// ── VISÃO GERAL ────────────────────────────────────────────────────
+const _autoWk=WEEKS.find(w=>T0>=w.start&&T0<new Date(w.start.getTime()+7*86400000))||WEEKS.find(w=>w.start>T0)||WEEKS[WEEKS.length-1];
+let selWk=_autoWk.id;
+document.getElementById('cret').textContent=Math.round((new Date(2026,10,9)-T0)/86400000)+'d';
+document.getElementById('cger').textContent=Math.round((new Date(2027,0,25)-T0)/86400000)+'d';
+function buildModAtual(){
+  const days=Math.floor((T0-PROG_START)/86400000);
+  const wk=Math.max(1,Math.min(Math.floor(days/7)+1,WK_SCHED.length));
+  const ws=WK_SCHED[wk-1]||WK_SCHED[WK_SCHED.length-1];
+  document.getElementById('modAtual').textContent='Sem '+wk;
+  document.getElementById('modAtualL').textContent=ws.mod;
+  const el=document.getElementById('modAtualMin');
+  if(el)el.textContent=ws.min+"' de aulas esta semana";
+}
+buildModAtual();
+
+function updModAtualForWk(wkStart){
+  const wkN=Math.max(1,Math.min(Math.floor((wkStart-PROG_START)/86400000/7)+1,WK_SCHED.length));
+  const ws=WK_SCHED[wkN-1]||WK_SCHED[WK_SCHED.length-1];
+  document.getElementById('modAtual').textContent='Sem '+wkN;
+  document.getElementById('modAtualL').textContent=ws.mod;
+  const el=document.getElementById('modAtualMin');
+  if(el)el.textContent=ws.min+"' de aulas esta semana";
+}
+function goToday(){selWk=_autoWk.id;buildWNav();buildGrade();updModAtualForWk(_autoWk.start);}
+function buildWNav(){
+  const c=document.getElementById('wnav');c.innerHTML='';
+  WEEKS.forEach(w=>{
+    const b=document.createElement('button');
+    b.className='wnb'+(w.crit?' crit':'')+(selWk===w.id?' active':'');
+    b.textContent=w.label+(w.crit?' ⚠':'');
+    b.onclick=()=>{selWk=w.id;buildWNav();buildGrade();updModAtualForWk(w.start);};
+    c.appendChild(b);
+  });
+  const active=c.querySelector('.wnb.active');
+  if(active){
+    const bw=active.offsetWidth+5;
+    const ai=WEEKS.findIndex(w=>w.id===selWk);
+    c.scrollLeft=Math.max(0,ai*bw);
+  }
+}
+function wNavArr(dir){
+  const c=document.getElementById('wnav');
+  const btn=c.querySelector('.wnb');
+  c.scrollBy({left:dir*((btn?btn.offsetWidth+5:80)*4),behavior:'smooth'});
+}
+function buildGrade(){
+  const wk=WEEKS.find(w=>w.id===selWk);if(!wk)return;
+  const rc=wk.rot.includes('Vermelho')?'br':wk.rot.includes('Verde')?'bg':'ba';
+  document.getElementById('ri-bar').innerHTML=`<span class="badge ${rc}">${wk.rot}</span> · ${wk.mod} · <span style="color:${wk.free>=6?'var(--grn)':wk.free>=5?'var(--amb)':'var(--red)'}">${wk.free} turnos livres</span>`;
+  const hdr=document.getElementById('gh');
+  hdr.innerHTML=`<div class="ghc" style="background:var(--sf2);border-right:1.5px solid var(--bd2)"></div>`;
+  const _tc=Math.round((T0-wk.start)/86400000),_tcv=(_tc>=0&&_tc<7)?_tc:-1;
+  DS.forEach((d,i)=>hdr.innerHTML+=`<div class="ghc${i>=5?' wknd':''}${i===_tcv?' tod':''}">${d}<span class="ghd">${wk.dates[i]}</span></div>`);
+  function evSlot(ev){const h=parseInt((ev.ini||'').split(':')[0])||0;return h>=7&&h<12?'manha':'tarde';}
+  function bR(eid,arr,lbl,slot){
+    const r=document.getElementById(eid);r.innerHTML=`<div class="grl">${lbl}</div>`;
+    for(let i=0;i<7;i++){
+      const ds2=new Date(wk.start.getTime()+i*86400000).toISOString().slice(0,10);
+      let inner='';
+      if(arr[i]){const tc=arr[i].toLowerCase().includes('bico')||arr[i].toLowerCase().includes('sus')?'tbi':'tob';inner=`<span class="tt ${tc}">${arr[i]}</span>`;}
+      CEV.filter(e=>e.dat===ds2&&evSlot(e)===slot).forEach(ev=>{
+        const idx=CEV.indexOf(ev);
+        inner+=`<span class="tt" style="background:var(--abg);color:var(--amb);border:1px solid var(--abd);display:flex;align-items:center;gap:2px;justify-content:space-between">${ev.tit.length>13?ev.tit.slice(0,13)+'…':ev.tit}<span onclick="delCEV(${idx})" style="cursor:pointer;opacity:.45;font-size:12px;line-height:1;flex-shrink:0" title="remover">×</span></span>`;
+      });
+      r.innerHTML+=`<div class="grc${i>=5?' wknd':''}${wk.bico[i]?' bico':''}">${inner}</div>`;
+    }
+  }
+  bR('gm',wk.manha,'Manhã','manha');bR('gt',wk.tarde,'Tarde','tarde');
+  const al=document.getElementById('walert');
+  if(wk.crit){
+    const rc=wk.rot.includes('Vermelho')?'var(--red)':wk.rot.includes('Verde')?'var(--grn)':'var(--amb)';
+    al.innerHTML=`<div class="ab ab-r">⚠ Virada de rotação → <strong>${wk.rot}</strong> · ${wk.free} turnos livres/semana · módulo: ${wk.mod}</div>`;
+  } else al.innerHTML='';
+}
+
+// ── QUESTÕES helpers (const — not hoisted, must precede init calls) ──
+const qGS=id=>QS[id]||{f:'',t:'',done:false,rh:[]};
+const qAll=()=>{const a=[];Q_MODS.forEach(m=>[...m.as,...m.bl].forEach(i=>a.push({...i,ib:m.bl.some(b=>b.id===i.id)})));return a;};
+const qGlb=id=>{for(const m of Q_MODS){for(const a of m.as)if(a.id===id)return m.lb+' · '+a.n;for(const b of m.bl)if(b.id===id)return m.lb+' · '+b.n;}return id;};
+const qRD=p=>p<0.70?7:p>=0.80?30:14;
+const qPC=p=>p===null?'':p>=80?'h':p>=61?'m':'vl';
+const qPCol=p=>p>=80?'var(--grn)':p>=61?'var(--amb)':'var(--red)';
+
+buildWNav();buildGrade();buildVisaoSide();buildRetina();
+
+// ── AULAS ─────────────────────────────────────────────────────────
+function buildAulas(){
+  let tot=0,dn=0,tMin=0,dMin=0;
+  AULAS.forEach(m=>m.aulas.forEach((a,i)=>{tot++;tMin+=a.min;if(AC[m.id]&&AC[m.id][i]){dn++;dMin+=a.min;}}));
+  const p=tMin?Math.round(dMin/tMin*100):0;
+  document.getElementById('asum').innerHTML=`<div class="card grn"><div class="v">${dn}</div><div class="l">aulas assistidas</div></div><div class="card"><div class="v">${tot-dn}</div><div class="l">aulas restantes</div></div><div class="card grn"><div class="v">${dMin}'</div><div class="l">min assistidos</div></div><div class="card ${p>=80?'grn':p>=40?'amb':'red'}"><div class="v">${p}%</div><div class="l">concluído</div></div>`;
+  const pf=document.getElementById('apf');pf.style.width=p+'%';pf.style.background=p>=80?'var(--grn)':p>=40?'var(--amb)':'var(--red)';
+  const list=document.getElementById('alist');list.innerHTML='';
+  AULAS.forEach(m=>{
+    let mD=0,mT=0;m.aulas.forEach((a,i)=>{mT+=a.min;if(AC[m.id]&&AC[m.id][i])mD+=a.min;});
+    const mp=mT?Math.round(mD/mT*100):0;
+    const curMod=semMapMod(_autoWk.mod);
+    const isOpen=m.id===curMod;
+    const blk=document.createElement('div');blk.className='mblk';
+    blk.innerHTML=`<div class="mhdr" onclick="togA('abd${m.id}','ach${m.id}')"><span class="mttl">${m.label}</span><div class="mmet"><span>${mD}'/${mT}'</span><span class="mb"><span class="mbf" style="width:${mp}%;background:${m.color}"></span></span><span style="color:${m.color}">${mp}%</span><span id="ach${m.id}">${isOpen?'▲':'▼'}</span></div></div><div class="mbdy${isOpen?' open':''}" id="abd${m.id}"></div>`;
+    list.appendChild(blk);
+    const body=blk.querySelector('.mbdy');
+    m.aulas.forEach((a,i)=>{
+      const ck=AC[m.id]&&AC[m.id][i];
+      const row=document.createElement('div');row.className='arow'+(ck?' done':'');
+      row.innerHTML=`<div class="ack${ck?' checked':''}" onclick="togAula('${m.id}',${i},this)">${ck?'✓':''}</div><div class="an">${a.n}</div><div style="font-size:10px;color:var(--tx3);font-family:'Courier New',monospace;text-align:right">${a.min}'</div>`;
+      body.appendChild(row);
+    });
+  });
+}
+function togA(bid,cid){const b=document.getElementById(bid),c=document.getElementById(cid);b.classList.toggle('open');if(c)c.textContent=b.classList.contains('open')?'▲':'▼';}
+function togAula(mid,idx,el){
+  if(!AC[mid])AC[mid]={};AC[mid][idx]=!AC[mid][idx];svAC();
+  const row=el.closest('.arow'),an=row.querySelector('.an');
+  const todayStr=T0.toISOString().slice(0,10);
+  if(AC[mid][idx]){
+    el.className='ack checked';el.textContent='✓';row.classList.add('done');an.style.textDecoration='line-through';an.style.color='var(--tx3)';
+    if(!SLOG.find(e=>e.type==='aula'&&e.mod===mid&&e.idx===idx&&e.date===todayStr)){
+      const m=AULAS.find(a=>a.id===mid),a=m&&m.aulas[idx];
+      if(m&&a){SLOG.push({type:'aula',date:todayStr,mod:mid,lb:m.label,idx,name:a.n,min:a.min});svSLOG();}
+    }
+  }else{
+    el.className='ack';el.textContent='';row.classList.remove('done');an.style.textDecoration='';an.style.color='var(--tx)';
+    const si=SLOG.findIndex(e=>e.type==='aula'&&e.mod===mid&&e.idx===idx&&e.date===todayStr);
+    if(si>=0){SLOG.splice(si,1);svSLOG();}
+  }
+  buildAulas();
+  buildModAtual();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina)buildRetGoals();
+}
+
+// ── QUESTÕES ──────────────────────────────────────────────────────
+function qC4(rd){if(!rd)return{c:'em',t:'—'};const d=new Date(rd),df=Math.round((d-T0)/86400000);if(df<0)return{c:'due',t:'⚠ '+Math.abs(df)+'d'};if(df===0)return{c:'due',t:'Hoje'};if(df<=7)return{c:'soon',t:'em '+df+'d · '+fD(d)};return{c:'ok2',t:fD(d)};}
+
+function buildQuestoes(){buildQTop();buildQSide();buildQMods();}
+function buildQTop(){
+  let tf=0,tt=0;qAll().forEach(i=>{const s=qGS(i.id);if(s.f&&s.t){tf+=+s.f||0;tt+=+s.t||0;}});
+  const p=tt?Math.round(tf/tt*100):null;
+  document.getElementById('qft').textContent=tt||'—';
+  document.getElementById('qac').textContent=tf||'—';
+  document.getElementById('qpct').textContent=p!==null?p+'%':'—';
+  const c=document.querySelector('.q3c:last-child');c.className='q3c '+(p===null?'':p>=80?'grn':p>=61?'amb':'red');
+  const pf=document.getElementById('qpf');pf.style.width=(p||0)+'%';pf.style.background=p===null?'var(--bd)':p>=80?'var(--grn)':p>=61?'var(--amb)':'var(--red)';
+}
+function buildQSide(){
+  const _retIds=new Set([...(Q_MODS.find(m=>m.id==='ret')?.as||[]),...(Q_MODS.find(m=>m.id==='ret')?.bl||[])].map(a=>a.id));
+  const nonRet=id=>!_retIds.has(id);
+  const ri=qAll().filter(i=>nonRet(i.id)).filter(i=>{const s=qGS(i.id);return s.revDate&&!s.revDone&&Math.round((new Date(s.revDate)-T0)/86400000)<=30;}).sort((a,b)=>new Date(qGS(a.id).revDate)-new Date(qGS(b.id).revDate));
+  const rp=document.getElementById('qrp'),rb=document.getElementById('qrb');
+  const at=ri.filter(r=>new Date(qGS(r.id).revDate)<=T0).length;
+  rb.textContent=ri.length||'';rb.className='qsbdg '+(at>0?'qsbr':'qsba');
+  rp.innerHTML=ri.length?ri.map(r=>{const s=qGS(r.id),df=Math.round((new Date(s.revDate)-T0)/86400000);return`<div class="qsi ${df<0?'urg':'pend'}"><div class="qsn">${r.n.length>28?r.n.slice(0,28)+'…':r.n}</div><div class="qsm">${s.f}/${s.t} · ${df<0?'⚠ '+Math.abs(df)+'d atraso':'em '+df+'d · '+fD(new Date(s.revDate))}</div></div>`;}).join(''):'<div class="qemp">Nenhuma revisão nos próximos 30 dias</div>';
+  const ai=qAll().filter(i=>nonRet(i.id)).filter(i=>{const s=qGS(i.id);if(!s.f||!s.t)return false;return Math.round(+s.f/+s.t*100)<=60;});
+  const ap=document.getElementById('qap'),ab=document.getElementById('qab');
+  ab.textContent=ai.length||'';
+  ap.innerHTML=ai.length?ai.map(i=>{const s=qGS(i.id),p=Math.round(+s.f/+s.t*100);return`<div class="qsi al"><div class="qsn">${i.n.length>28?i.n.slice(0,28)+'…':i.n}</div><div class="qsm">${s.f}/${s.t} · ${p}%</div><div class="qsw">⚠ abaixo de 60% — revisar urgente</div></div>`;}).join(''):'<div class="qemp">Nenhum alerta de desempenho</div>';
+  buildVisaoSide();
+}
+function buildQMods(){
+  const wrap=document.getElementById('qmc');wrap.innerHTML='';
+  Q_MODS.forEach(m=>{
+    let mf=0,mt=0;[...m.as,...m.bl].forEach(i=>{const s=qGS(i.id);if(s.f&&s.t){mf+=+s.f||0;mt+=+s.t||0;}});
+    const mp=mf&&mt?Math.round(mf/mt*100):null,pc2=mp!==null?qPCol(mp):'var(--bd)';
+    const blk=document.createElement('div');blk.className='qmb';
+    blk.innerHTML=`<div class="qmh" onclick="togQ('qbd${m.id}','qch${m.id}')"><span class="qmt">${m.lb}</span><div class="qmr"><span>${mf}/${mt}</span><span class="qmbar"><span class="qmbar-f" style="width:${mt?Math.min(100,Math.round(mf/mt*100)):0}%;background:${pc2}"></span></span><span style="color:${pc2}">${mp!==null?mp+'%':'—'}</span><span id="qch${m.id}">${m.op?'▲':'▼'}</span></div></div><div class="qmbdy${m.op?' open':''}" id="qbd${m.id}"></div>`;
+    wrap.appendChild(blk);
+    const body=blk.querySelector('.qmbdy');
+    body.innerHTML+=`<div class="qclbl"><div>assunto</div><div>fez · % · ok</div><div>próxima revisão</div><div></div></div><div class="qsep">por assunto</div>`;
+    m.as.forEach(a=>body.appendChild(mkQRow(a,false)));
+    body.innerHTML+=`<div class="qsep">blocos semanais — OFT-Review</div>`;
+    m.bl.forEach(b=>body.appendChild(mkQRow(b,true)));
+  });
+}
+function mkQRow(item,ib){
+  const s=qGS(item.id);
+  const ci=_qClearNext.has(item.id);if(ci)_qClearNext.delete(item.id);
+  const f=ci?0:(+s.f||0),t=ci?0:(+s.t||0),p=f&&t?Math.round(f/t*100):null;
+  const prevH=QH.find(h=>h.id===item.id);
+  const revDate=s.revDate||prevH?.revDate;
+  const c4=qC4(revDate),ial=p!==null&&p<=60;
+  const div=document.createElement('div');div.className='qrow'+(ial?' ar':'');div.id='QR'+item.id;
+  const c1=`<span class="qrn${ib?' bl':''}">${item.n}</span>`;
+  const c2=`<div class="qc2${ial?' ac':''}"><input class="qfi" type="number" min="0" placeholder="fez" value="${ci?'':(s.f||'')}" id="QF${item.id}" oninput="qOnI('${item.id}')"><span class="qsl">/</span><input class="qfi" type="number" min="0" placeholder="tot" value="${ci?'':(s.t||'')}" id="QT${item.id}" oninput="qOnI('${item.id}')"><span class="qpp ${ci?'':qPC(p)}" id="QP${item.id}">${ci?'—':(p!==null?p+'%':'—')}</span><button class="qokb" onclick="qConc('${item.id}')">ok</button>${s.done&&!ci?`<button class="qnewb" onclick="qNewSess('${item.id}')" title="nova sessão">↺</button>`:''}</div>`;
+  const c5=`<button class="qdelb" onclick="qDel('${item.id}')" title="limpar registro">×</button>`;
+  div.innerHTML=c1+c2+`<div class="qc4 ${c4.c}">${c4.t}</div>`+c5;
+  return div;
+}
+function qDel(id){
+  if(!confirm('Limpar todo o registro desta questão?'))return;
+  delete QS[id];
+  QH=QH.filter(h=>h.id!==id);
+  svQ();
+  const before=SLOG.length;
+  SLOG=SLOG.filter(e=>!(e.type==='quest'&&e.id===id));
+  if(SLOG.length!==before)svSLOG();
+  buildQTop();buildQSide();buildQMods();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina)buildRetGoals();
+}
+function qOnI(id){
+  const f=document.getElementById('QF'+id)?.value||'',t=document.getElementById('QT'+id)?.value||'';
+  QS[id]=Object.assign(qGS(id),{f,t});svQ();
+  const p=+f&&+t?Math.round(+f/+t*100):null,el=document.getElementById('QP'+id);
+  if(el){el.textContent=p!==null?p+'%':'—';el.className='qpp '+qPC(p);}
+  buildQTop();buildQSide();
+}
+function qConc(id){
+  const f=document.getElementById('QF'+id)?.value||'',t=document.getElementById('QT'+id)?.value||'';
+  if(!+f||!+t){alert('Preencha feitas e total.');return;}
+  const p=Math.round(+f/+t*100),rd=qRD(+f/+t),rv=aDD(T0,rd),prev=qGS(id);
+  QS[id]={...prev,f,t,data:td(),done:true,revDays:rd,revDate:rv.toISOString(),revDone:false,rh:prev.rh||[]};
+  QH.unshift({id,lb:qGlb(id),f:+f,t:+t,p,data:td(),revDate:rv.toISOString(),revDays:rd});
+  svQ();
+  const todayStr=T0.toISOString().slice(0,10);
+  const isNew=!prev.done||_qNewSess.has(id);
+  _qNewSess.delete(id);
+  if(isNew){
+    SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f:+f,t:+t,pct:p});
+  }else{
+    const si=SLOG.findIndex(e=>e.type==='quest'&&e.id===id&&e.date===todayStr);
+    if(si>=0){SLOG[si]={...SLOG[si],f:+f,t:+t,pct:p};}else{SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f:+f,t:+t,pct:p});}
+  }
+  svSLOG();
+  _qClearNext.add(id);
+  _qNewSess.add(id);
+  qRRow(id);buildQTop();buildQSide();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina){buildRetGoals();buildRetRev();}
+  // Scheduling dialog
+  const _qschedLb=qGlb(id).split(' · ').pop();
+  const _rv=aDD(T0,rd);
+  const _rvStr=_rv.toISOString().slice(0,10);
+  document.getElementById('schedTit').textContent='Revisão agendada — '+_qschedLb;
+  document.getElementById('schedMsg').innerHTML=`Você acertou <strong>${p}%</strong> deste bloco.<br>Próxima revisão sugerida: <strong>${fD(_rv)}</strong> (em ${rd} dias).`;
+  document.getElementById('schedDat').value=_rvStr;
+  document.getElementById('schedModal').dataset.id=id;
+  document.getElementById('schedModal').dataset.lb=_qschedLb;
+  document.getElementById('schedModal').classList.add('open');
+}
+document.getElementById('schedModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+function schedConfirm(){
+  const m=document.getElementById('schedModal');
+  const dat=document.getElementById('schedDat').value;
+  const lb=m.dataset.lb||'Revisão';
+  const id=m.dataset.id;
+  if(!dat){alert('Selecione a data.');return;}
+  // Atualiza a data de revisão escolhida pelo usuário no QS
+  if(id){
+    const s=qGS(id);
+    const rv=new Date(dat+'T12:00:00');
+    QS[id]={...s,revDate:rv.toISOString(),revDone:false};
+    // Atualiza também o primeiro registro no QH
+    const hi=QH.findIndex(h=>h.id===id);
+    if(hi>=0)QH[hi]={...QH[hi],revDate:rv.toISOString()};
+    svQ();
+  }
+  CEV.push({tit:'Revisão: '+lb,dat,ini:'',fim:'',tipo:'revisao',not:''});
+  svCEV();m.classList.remove('open');
+  buildGrade();
+  buildVisaoSide();
+  if(tBlt.calendario)buildCal();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.questoes){buildQSide();buildQMods();}
+  if(tBlt.retina&&document.getElementById('ret-rev-tab'))buildRetRev();
+}
+function qNewSess(id){
+  const s=qGS(id);
+  QS[id]={...s,f:'',t:'',done:false};
+  svQ();
+  _qNewSess.add(id);
+  _qClearNext.add(id);
+  qRRow(id);
+  buildQTop();
+}
+function qAddRev(id){
+  const el=document.getElementById('QRI'+id),ac=+el?.value||0,s=qGS(id),t=+s.t||(QH.find(h=>h.id===id)?.t)||0;
+  if(!ac||!t){alert('Preencha os acertos da revisão.');return;}
+  const p=Math.round(ac/t*100),rd=qRD(ac/t),rv=aDD(T0,rd),rh=[...(s.rh||[]),{data:td(),p,ac,t}];
+  QS[id]={...s,rh,revDate:rv.toISOString(),revDays:rd,revDone:false};
+  QH.unshift({id,lb:qGlb(id),f:ac,t,p,data:td(),revDate:rv.toISOString(),revDays:rd,isR:true});
+  svQ();
+  const todayStr2=T0.toISOString().slice(0,10);
+  const si2=SLOG.findIndex(e=>e.type==='quest'&&e.id===id&&e.date===todayStr2);
+  if(si2>=0){SLOG[si2]={...SLOG[si2],f:ac,t,pct:p,isR:true};}else{SLOG.push({type:'quest',date:todayStr2,id,lb:qGlb(id),f:ac,t,pct:p,isR:true});}
+  svSLOG();
+  qRRow(id);buildQSide();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina){buildRetGoals();buildRetRev();}
+}
+function qRRow(id){const row=document.getElementById('QR'+id);if(!row)return;const m=Q_MODS.find(m=>[...m.as,...m.bl].some(i=>i.id===id));const item=[...(m?.as||[]),...(m?.bl||[])].find(i=>i.id===id);if(m&&item)row.replaceWith(mkQRow(item,m.bl.some(b=>b.id===id)));}
+function togQ(bid,cid){const b=document.getElementById(bid),c=document.getElementById(cid);b.classList.toggle('open');if(c)c.textContent=b.classList.contains('open')?'▲':'▼';}
+function buildQHist(){
+  const c=document.getElementById('qhist');
+  if(!QH.length){c.innerHTML='<div style="font-size:10px;color:var(--tx3);padding:.5rem">Nenhum item ainda.</div>';return;}
+  c.innerHTML=`<div class="qhrow" style="font-size:9px;color:var(--tx3)"><div>data</div><div>item</div><div>feitas</div><div>%</div><div>próx rev</div><div></div></div>`+QH.map((h,i)=>`<div class="qhrow"><div>${h.data}${h.isR?' <em style="color:var(--tx4)">rev</em>':''}</div><div style="font-family:'Georgia',serif;font-size:10px">${(h.lb||'').split(' · ').pop()}</div><div>${h.f}/${h.t}</div><div style="color:${qPCol(h.p)}">${h.p}%</div><div style="font-size:9px;color:var(--tx3)">${h.revDate?fD(new Date(h.revDate)):''}</div><button class="qdelb" onclick="qHistDel(${i})" title="remover">×</button></div>`).join('');
+}
+function togQH(){const h=document.getElementById('qhist');const v=h.style.display==='flex';h.style.display=v?'none':'flex';h.style.flexDirection='column';h.style.gap='2px';if(!v)buildQHist();}
+function qHistDel(i){
+  if(!confirm('Remover este registro de histórico?'))return;
+  const h=QH[i];if(!h)return;
+  QH.splice(i,1);
+  const s=QS[h.id];
+  if(s){delete QS[h.id];}
+  svQ();
+  const before=SLOG.length;
+  SLOG=SLOG.filter(e=>!(e.type==='quest'&&e.id===h.id));
+  if(SLOG.length!==before)svSLOG();
+  buildQTop();buildQSide();buildQMods();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina){buildRetGoals();buildRetRev();}
+}
+
+// ── CALENDÁRIO ────────────────────────────────────────────────────
+const CAL_ALERTS={
+  '2026-5':'⚠ 22/jun: virada R3A Vermelho → R3B Verde',
+  '2026-6':'⚠ 27/jul: virada R3B Verde → R3 Amarelo',
+  '2026-7':'⚠ 31/ago: virada R3 Amarelo → R3A Verde — Faco sábado',
+  '2026-9':'⚠ 05/out: virada R3A Verde → R3B Vermelho',
+  '2026-10':'🔴 09/nov: Prova de Retina + virada → R3B Verde',
+  '2026-11':'⚠ 14/dez: virada R3B Verde → R3 Amarelo',
+  '2027-0':'⚠ 25/jan: fim R3 Amarelo — Prova Geral iminente',
+};
+const CAL_MONTHS=[
+  {y:2026,m:5,n:'Junho 2026'},{y:2026,m:6,n:'Julho 2026'},
+  {y:2026,m:7,n:'Agosto 2026'},{y:2026,m:8,n:'Setembro 2026'},
+  {y:2026,m:9,n:'Outubro 2026'},{y:2026,m:10,n:'Novembro 2026'},
+  {y:2026,m:11,n:'Dezembro 2026'},{y:2027,m:0,n:'Janeiro 2027'},
+];
+function buildCal(){
+  const wrap=document.getElementById('calwrap');wrap.innerHTML='';
+  const BL='var(--bbg)',BC='var(--blu)';
+  CAL_MONTHS.forEach(({y,m,n})=>{
+    // Section title
+    const sec=document.createElement('div');sec.className='sec';sec.textContent=n;wrap.appendChild(sec);
+    // Rotation badges (detect unique rots in month)
+    const seen=new Set();
+    for(let d=1;d<=new Date(y,m+1,0).getDate();d++){
+      const p=getRotP(new Date(y,m,d));seen.add(p[1]);}
+    const brow=document.createElement('div');
+    brow.style.cssText='display:flex;gap:6px;margin-bottom:.6rem;flex-wrap:wrap';
+    seen.forEach(r=>{
+      const rc=r.includes('Vermelho')?'br':r.includes('Verde')?'bg':'ba';
+      brow.innerHTML+=`<span class="badge ${rc}">${ROT[r].rot} — ${ROT[r].free} livres/sem</span>`;
+    });
+    wrap.appendChild(brow);
+    // Calendar grid
+    const grid=document.createElement('div');grid.className='cg';
+    ['seg','ter','qua','qui','sex','sáb','dom'].forEach(h=>{
+      const hd=document.createElement('div');hd.className='chc';hd.textContent=h;grid.appendChild(hd);
+    });
+    const firstDow=(new Date(y,m,1).getDay()+6)%7;
+    for(let i=0;i<firstDow;i++){const e=document.createElement('div');e.className='cday empty';grid.appendChild(e);}
+    const lastD=new Date(y,m+1,0).getDate();
+    for(let day=1;day<=lastD;day++){
+      const date=new Date(y,m,day);
+      const dow=(date.getDay()+6)%7; // 0=Seg…6=Dom
+      const isWknd=dow>=6; // só domingo sem aulas (sáb=5 pode ter Faco no R3A Verde)
+      const p=getRotP(date),t=ROT[p[1]];
+      const isCritDay=p[3]&&p[0].getTime()===date.getTime();
+      const isToday=date.getTime()===T0.getTime();
+      const cell=document.createElement('div');
+      cell.className='cday'+(dow===6?' wknd':'')+(isCritDay?' crit':'')+(isToday?' tod':'');
+      if(isToday)cell.style.outline='2px solid var(--tx)';
+      cell.innerHTML=`<div class="cnum">${day}</div>`;
+      if(dow<7){
+        const M=t.manha[dow],Td=t.tarde[dow];
+        if(M)cell.innerHTML+=`<span class="ctag" style="background:${BL};color:${BC}">M ${M}</span>`;
+        if(Td)cell.innerHTML+=`<span class="ctag" style="background:${BL};color:${BC}">T ${Td}</span>`;
+      }
+      // Eventos customizados
+      const dayStr=`${y}-${String(m+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      CEV.filter(e=>e.dat===dayStr).forEach(ev=>{
+        const AL='var(--abg)',AC2='var(--amb)';
+        cell.innerHTML+=`<span class="ctag" style="background:${AL};color:${AC2};cursor:pointer" title="${ev.ini||''}${ev.ini&&ev.fim?'–'+ev.fim:''} ${ev.not||''}">${ev.tit.length>12?ev.tit.slice(0,12)+'…':ev.tit}</span>`;
+      });
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    // Alert note
+    const key=`${y}-${m}`;
+    if(CAL_ALERTS[key]){
+      const al=document.createElement('div');
+      al.style.cssText=`font-size:10px;font-family:'Courier New',monospace;margin-bottom:1.25rem;color:${CAL_ALERTS[key].startsWith('🔴')?'var(--red)':'var(--amb)'}`;
+      al.textContent=CAL_ALERTS[key];wrap.appendChild(al);
+    } else {
+      const sp=document.createElement('div');sp.style.marginBottom='1.25rem';wrap.appendChild(sp);
+    }
+  });
+}
+
+// ── DIÁRIO ─────────────────────────────────────────────────────────
+let sWk=null,sDy=null;
+function buildDiario(){
+  const c=document.getElementById('dwk');c.innerHTML='';
+  WEEKS.forEach(w=>{const b=document.createElement('button');const hd=DS.some(d=>DD[w.id+'-'+d]);b.className='wbtn'+(sWk===w.id?' active':'')+(hd?' hd':'');b.textContent=w.label;b.onclick=()=>{sWk=w.id;sDy=null;document.querySelectorAll('#dwk .wbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');bDDays();document.getElementById('dform').style.display='block';};c.appendChild(b);});
+}
+function bDDays(){
+  const c=document.getElementById('dday');c.innerHTML='';
+  DS.forEach(d=>{const b=document.createElement('button');const hd=DD[sWk+'-'+d];b.className='wbtn'+(sDy===d?' active':'')+(hd?' hd':'');b.textContent=d;b.onclick=()=>selDyF(d,b);c.appendChild(b);});
+}
+function selDyF(d,btn){
+  sDy=d;document.querySelectorAll('#dday .wbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  const key=sWk+'-'+d,e=DD[key]||{},wk=WEEKS.find(w=>w.id===sWk),dom=DD[sWk]||{};
+  document.getElementById('dtit').textContent=(wk?wk.label:'')+' · '+d;
+  document.getElementById('da').value=e.a||'';document.getElementById('dqf').value=e.qf||'';document.getElementById('dqt').value=e.qt||'';document.getElementById('dfl').value=e.fl||'';document.getElementById('drv').value=e.rv||'';document.getElementById('dnt').value=e.nt||'';
+  document.getElementById('dam').textContent='meta: '+(dom.a?dom.a+'min':'—');document.getElementById('dqm').textContent='meta: '+(dom.q||'—');document.getElementById('dflm').textContent='meta: '+(dom.f||'—');
+  updWS();
+}
+function saveD(){
+  if(!sWk||!sDy)return;
+  DD[sWk+'-'+sDy]={a:parseInt(document.getElementById('da').value)||0,qf:parseInt(document.getElementById('dqf').value)||0,qt:parseInt(document.getElementById('dqt').value)||0,fl:parseInt(document.getElementById('dfl').value)||0,rv:parseInt(document.getElementById('drv').value)||0,nt:document.getElementById('dnt').value};
+  svDD();bDDays();updWS();buildHist();
+}
+function clearD(){if(!sWk||!sDy)return;delete DD[sWk+'-'+sDy];svDD();['da','dqf','dqt','dfl','drv','dnt'].forEach(id=>document.getElementById(id).value='');bDDays();updWS();}
+function updWS(){
+  if(!sWk)return;let tA=0,tQF=0,tQT=0,tF=0;const log=[];
+  DS.forEach(d=>{const e=DD[sWk+'-'+d];if(e){tA+=e.a||0;tQF+=e.qf||0;tQT+=e.qt||0;tF+=e.fl||0;if(e.nt)log.push(d+': '+e.nt);}});
+  const dom=DD[sWk]||{},pA=dom.a?Math.round(tA/dom.a*100):null,pQ=dom.q&&tQT?Math.round(tQF/tQT*100):null,pF=dom.f?Math.round(tF/dom.f*100):null;
+  document.getElementById('wsa').textContent=tA+'/'+(dom.a||'?')+'min';document.getElementById('wsq').textContent=tQF+'/'+tQT+' (meta '+(dom.q||'?')+')';document.getElementById('wsfl').textContent=tF+' cards';
+  const col=p=>p===null?'':p>=80?'color:var(--grn)':p>=50?'color:var(--amb)':'color:var(--red)';const fmt=p=>p!==null?p+'%':'sem meta';
+  document.getElementById('wsap').innerHTML=`<span style="${col(pA)}">${fmt(pA)}</span>`;document.getElementById('wsqp').innerHTML=`<span style="${col(pQ)}">${fmt(pQ)}</span>`;document.getElementById('wsflp').innerHTML=`<span style="${col(pF)}">${fmt(pF)}</span>`;
+  document.getElementById('dlog').innerHTML=log.map(l=>'— '+l).join('<br>')||'';
+}
+
+// ── DOMINGO ────────────────────────────────────────────────────────
+let sDowWk=null;
+function buildDomingo(){
+  const c=document.getElementById('dowwk');c.innerHTML='';
+  WEEKS.forEach(w=>{const b=document.createElement('button');b.className='wbtn'+(sDowWk===w.id?' active':'');b.textContent=w.label;
+    b.onclick=()=>{sDowWk=w.id;document.querySelectorAll('#dowwk .wbtn').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.getElementById('dowinfo').textContent=w.free+' turnos livres · '+w.rot+' · '+w.mod;document.getElementById('dowah').textContent=w.dicas.a;document.getElementById('dowqh').textContent=w.dicas.q;document.getElementById('dowfh').textContent=w.dicas.f;const d=DD[w.id]||{};document.getElementById('dowa').value=d.a||'';document.getElementById('dowq').value=d.q||'';document.getElementById('dowf').value=d.f||'';document.getElementById('dowr').value=d.r||'';document.getElementById('dowobs').value=d.obs||'';document.getElementById('dowsaved').style.display='none';};
+    c.appendChild(b);});
+}
+function saveDow(){
+  if(!sDowWk)return;const a=parseInt(document.getElementById('dowa').value)||0,q=parseInt(document.getElementById('dowq').value)||0,f=parseInt(document.getElementById('dowf').value)||0,r=parseInt(document.getElementById('dowr').value)||0,obs=document.getElementById('dowobs').value;
+  if(!a&&!q&&!f){alert('Preencha ao menos uma meta.');return;}
+  DD[sDowWk]=Object.assign(DD[sDowWk]||{},{a,q,f,r,obs});svDD();
+  const wk=WEEKS.find(w=>w.id===sDowWk);
+  document.getElementById('dowcont').innerHTML=(wk?wk.label+' · '+wk.mod:'')+'<br>aulas: '+a+'min · questões: '+q+' · flashcards: '+f+' · revisões: '+r+(obs?'<br>obs: '+obs:'');
+  document.getElementById('dowsaved').style.display='block';
+  if(tBlt.diario)buildDiario();
+}
+
+// ── MODAL EVENTO ──────────────────────────────────────────────────
+function delCEV(idx){
+  if(!confirm('Remover este evento do calendário?'))return;
+  CEV.splice(idx,1);svCEV();
+  buildGrade();
+  if(tBlt.semana)renderSemAgenda();
+}
+function openAddEvent(){document.getElementById('evModal').classList.add('open');}
+function closeAddEvent(){document.getElementById('evModal').classList.remove('open');}
+function saveEvent(){
+  const tit=document.getElementById('evTit').value.trim();
+  const dat=document.getElementById('evDat').value;
+  if(!tit||!dat){alert('Preencha título e data.');return;}
+  CEV.push({tit,dat,ini:document.getElementById('evIni').value,fim:document.getElementById('evFim').value,tipo:document.getElementById('evTipo').value,not:document.getElementById('evNot').value});
+  svCEV();closeAddEvent();
+  ['evTit','evDat','evIni','evFim','evNot'].forEach(id=>document.getElementById(id).value='');
+  buildGrade();
+  if(tBlt.calendario)buildCal();
+  if(tBlt.semana)renderSemAgenda();
+}
+document.getElementById('evModal').addEventListener('click',function(e){if(e.target===this)closeAddEvent();});
+
+// ── SIDEBAR VISÃO GERAL ───────────────────────────────────────────
+function buildVisaoSide(){
+  const _retIds=new Set([...(Q_MODS.find(m=>m.id==='ret')?.as||[]),...(Q_MODS.find(m=>m.id==='ret')?.bl||[])].map(a=>a.id));
+  const nonRet=id=>!_retIds.has(id);
+  const ri=qAll().filter(i=>nonRet(i.id)).filter(i=>{const s=qGS(i.id);return s.revDate&&!s.revDone&&Math.round((new Date(s.revDate)-T0)/86400000)<=30;}).sort((a,b)=>new Date(qGS(a.id).revDate)-new Date(qGS(b.id).revDate));
+  const at=ri.filter(r=>new Date(qGS(r.id).revDate)<=T0).length;
+  const rb2=document.getElementById('qrb2'),rp2=document.getElementById('qrp2');
+  if(rb2){rb2.textContent=ri.length||'';rb2.className='qsbdg '+(at>0?'qsbr':'qsba');}
+  if(rp2)rp2.innerHTML=ri.length?ri.map(r=>{
+    const s=qGS(r.id),df=Math.round((new Date(s.revDate)-T0)/86400000);
+    const nm=r.n.length>22?r.n.slice(0,22)+'…':r.n;
+    const lbl=df<0?`${nm} · ⚠${Math.abs(df)}d · ${fD(new Date(s.revDate))}`:
+                    `${nm} · ${df}d · ${fD(new Date(s.revDate))}`;
+    const t=+s.t||(QH.find(h=>h.id===r.id)?.t)||0;
+    return`<div class="qsi1l ${df<0?'urg':'pend'}" onclick="togSidePanel('qrs_${r.id}')">${lbl}</div>`+
+          `<div id="qrs_${r.id}" class="qsi-exp" style="display:none">`+
+            `<span style="color:var(--tx3)">acertos (de ${t}):</span>`+
+            `<input type="number" min="0" max="${t}" id="QRSA_${r.id}" placeholder="0">`+
+            `<button onclick="doRevSide('${r.id}')">ok</button>`+
+          `</div>`;
+  }).join(''):'<div class="qemp">Nenhuma revisão nos próximos 30 dias</div>';
+  const ai=qAll().filter(i=>nonRet(i.id)).filter(i=>{const s=qGS(i.id);if(!s.f||!s.t)return false;return Math.round(+s.f/+s.t*100)<=60;});
+  const ab2=document.getElementById('qab2'),ap2=document.getElementById('qap2');
+  if(ab2)ab2.textContent=ai.length||'';
+  if(ap2)ap2.innerHTML=ai.length?ai.map(i=>{
+    const s=qGS(i.id),p=Math.round(+s.f/+s.t*100);
+    const nm=i.n.length>20?i.n.slice(0,20)+'…':i.n;
+    return`<div class="qsi1l al" onclick="togSidePanel('qas_${i.id}')">${nm} · ${s.f}/${s.t} · ${p}%</div>`+
+          `<div id="qas_${i.id}" class="qsi-exp" style="display:none">`+
+            `<span style="color:var(--tx3)">nova sessão — feitas:</span>`+
+            `<input type="number" min="0" id="QASF_${i.id}" placeholder="0">`+
+            `<span>/</span><input type="number" min="0" id="QAST_${i.id}" value="${s.t||''}" placeholder="tot">`+
+            `<button onclick="doAlSide('${i.id}')">ok</button>`+
+          `</div>`;
+  }).join(''):'<div class="qemp">Nenhum alerta de desempenho</div>';
+}
+function togSidePanel(pid){
+  const el=document.getElementById(pid);if(!el)return;
+  const vis=el.style.display!=='none';
+  // close all other panels first
+  document.querySelectorAll('[id^="qrs_"],[id^="qas_"]').forEach(e=>e.style.display='none');
+  if(!vis)el.style.display='flex';
+}
+function doRevSide(id){
+  const s=qGS(id),t=+s.t||(QH.find(h=>h.id===id)?.t)||0;
+  const ac=+document.getElementById('QRSA_'+id)?.value||0;
+  if(!ac||!t){alert('Preencha os acertos.');return;}
+  const p=Math.round(ac/t*100),rd=qRD(ac/t),rv=aDD(T0,rd),rh=[...(s.rh||[]),{data:td(),p,ac,t}];
+  QS[id]={...s,rh,revDate:rv.toISOString(),revDays:rd,revDone:false};
+  QH.unshift({id,lb:qGlb(id),f:ac,t,p,data:td(),revDate:rv.toISOString(),revDays:rd,isR:true});
+  svQ();
+  const todayStr=T0.toISOString().slice(0,10);
+  const si=SLOG.findIndex(e=>e.type==='quest'&&e.id===id&&e.date===todayStr);
+  if(si>=0){SLOG[si]={...SLOG[si],f:ac,t,pct:p,isR:true};}else{SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f:ac,t,pct:p,isR:true});}
+  svSLOG();
+  buildVisaoSide();buildQSide();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.questoes){buildQTop();buildQMods();}
+}
+function doAlSide(id){
+  const f=+document.getElementById('QASF_'+id)?.value||0,t=+document.getElementById('QAST_'+id)?.value||0;
+  if(!f||!t){alert('Preencha feitas e total.');return;}
+  const p=Math.round(f/t*100),rd=qRD(f/t),rv=aDD(T0,rd),prev=qGS(id);
+  QS[id]={...prev,f,t,data:td(),done:true,revDays:rd,revDate:rv.toISOString(),revDone:false,rh:prev.rh||[]};
+  QH.unshift({id,lb:qGlb(id),f,t,p,data:td(),revDate:rv.toISOString(),revDays:rd});
+  svQ();
+  const todayStr=T0.toISOString().slice(0,10);
+  SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f,t,pct:p});
+  svSLOG();
+  buildVisaoSide();buildQSide();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.questoes){buildQTop();buildQMods();}
+}
+
+// ── PROTOCOLO RETINA ──────────────────────────────────────────────
+function buildRetina(){
+  // Aulas
+  const retM=AULAS.find(m=>m.id==='retina');
+  let rAD=0,rAT=0,rMD=0,rMT=0;
+  if(retM)retM.aulas.forEach((a,i)=>{rAT++;rMT+=a.min;if(AC.retina&&AC.retina[i]){rAD++;rMD+=a.min;}});
+  const rAP=rMT?Math.round(rMD/rMT*100):0;
+  document.getElementById('ret-aulas').innerHTML=`
+    <div class="ret-sec">Aulas</div>
+    <div class="ret-g2">
+      <div class="card grn"><div class="v">${rAD}</div><div class="l">assistidas</div></div>
+      <div class="card"><div class="v">${rAT-rAD}</div><div class="l">restantes</div></div>
+      <div class="card grn"><div class="v">${rMD}'</div><div class="l">min feitos</div></div>
+      <div class="card amb"><div class="v">${rMT-rMD}'</div><div class="l">min rest.</div></div>
+    </div>
+    <div class="pb"><div class="pf" style="width:${rAP}%;background:${rAP>=80?'var(--grn)':rAP>=40?'var(--amb)':'var(--red)'}"></div></div>
+    <div style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace;margin-top:3px">${rAP}% concluído</div>`;
+  // Questões
+  const retQ=Q_MODS.find(m=>m.id==='ret');
+  let rQF=0,rQT=0;
+  if(retQ)[...retQ.as,...retQ.bl].forEach(i=>{const s=qGS(i.id);if(s.f&&s.t){rQF+=+s.f||0;rQT+=+s.t||0;}});
+  const rQP=rQT?Math.round(rQF/rQT*100):null;
+  const qCol=rQP===null?'var(--tx3)':rQP>=80?'var(--grn)':rQP>=61?'var(--amb)':'var(--red)';
+  document.getElementById('ret-quest').innerHTML=`
+    <div class="ret-sec">Questões</div>
+    <div class="q3" style="margin-bottom:.5rem">
+      <div class="q3c"><div class="v">${rQT||'—'}</div><div class="l">total</div></div>
+      <div class="q3c"><div class="v">${rQF||'—'}</div><div class="l">acertadas</div></div>
+      <div class="q3c"><div class="v" style="color:${qCol}">${rQP!==null?rQP+'%':'—'}</div><div class="l">aproveit.</div></div>
+    </div>
+    <div class="qpbar"><div class="qpfill" style="width:${rQP||0}%;background:${qCol}"></div></div>`;
+  // Flashcards
+  const fTot=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  const fPct=RFLASH.metaMin?Math.round(fTot/RFLASH.metaMin*100):0;
+  const fCol=fPct>=80?'var(--grn)':fPct>=40?'var(--amb)':'var(--red)';
+  document.getElementById('ret-flash-div').innerHTML=`
+    <div class="ret-sec">Flashcards</div>
+    <div class="ret-g2" style="margin-bottom:.5rem">
+      <div class="wsc" style="cursor:pointer"><div class="wsf">${fTot}'</div><div class="wsl">Tempo feito</div></div>
+      <div class="wsc"><div class="wsf" style="color:${fCol}">${fPct}%</div><div class="wsl">da meta (${RFLASH.metaMin}')</div></div>
+    </div>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <input id="flashMin" type="number" min="1" placeholder="min" style="width:52px;background:#fff;border:1px solid var(--bd2);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'Courier New',monospace;text-align:center">
+      <button class="bp" onclick="addFlash()" style="padding:3px 10px;font-size:10px">+ Log</button>
+      <button class="bs" onclick="setFlashMeta()" style="font-size:9px;margin-left:0">meta</button>
+    </div>`;
+  // Revisões e alertas retina
+  const retItems=retQ?[...retQ.as,...retQ.bl]:[];
+  const ri2=retItems.filter(i=>{const s=qGS(i.id);return s.revDate&&!s.revDone&&Math.round((new Date(s.revDate)-T0)/86400000)<=30;}).sort((a,b)=>new Date(qGS(a.id).revDate)-new Date(qGS(b.id).revDate));
+  const ai2=retItems.filter(i=>{const s=qGS(i.id);if(!s.f||!s.t)return false;return Math.round(+s.f/+s.t*100)<=60;});
+  const at2=ri2.filter(r=>new Date(qGS(r.id).revDate)<=T0).length;
+  document.getElementById('ret-side').innerHTML=`
+    <div class="qsbox" style="margin-bottom:.5rem">
+      <div class="qshdr" style="font-size:9px">Próx. Revisões <span class="qsbdg ${at2?'qsbr':'qsba'}">${ri2.length||''}</span></div>
+      <div class="qsbody" style="max-height:110px">${ri2.length?ri2.slice(0,4).map(r=>{const s=qGS(r.id),df=Math.round((new Date(s.revDate)-T0)/86400000);return`<div class="qsi ${df<0?'urg':'pend'}"><div class="qsn" style="font-size:9px">${r.n.length>22?r.n.slice(0,22)+'…':r.n}</div><div class="qsm">${df<0?'⚠ '+Math.abs(df)+'d':'em '+df+'d'}</div></div>`;}).join(''):'<div class="qemp">Nenhuma</div>'}</div>
+    </div>
+    <div class="qsbox">
+      <div class="qshdr" style="font-size:9px">Alertas <span class="qsbdg qsbr">${ai2.length||''}</span></div>
+      <div class="qsbody" style="max-height:110px">${ai2.length?ai2.slice(0,4).map(i=>{const s=qGS(i.id),p=Math.round(+s.f/+s.t*100);return`<div class="qsi al"><div class="qsn" style="font-size:9px">${i.n.length>22?i.n.slice(0,22)+'…':i.n}</div><div class="qsm">${p}%</div></div>`;}).join(''):'<div class="qemp">Nenhum</div>'}</div>
+    </div>`;
+}
+function addFlash(){
+  const el=document.getElementById('flashMin');
+  const min=parseInt(el?.value)||0;
+  if(!min){alert('Informe os minutos estudados.');return;}
+  RFLASH.sessions.push({data:td(),min});svRFLASH();if(el)el.value='';buildRetina();
+}
+function setFlashMeta(){
+  const m=prompt('Meta total de flashcards em minutos:',RFLASH.metaMin);
+  if(m&&+m>0){RFLASH.metaMin=+m;svRFLASH();buildRetina();}
+}
+
+// ── RETINA TAB ────────────────────────────────────────────────────
+const RET_EXAM_DATE=new Date(2026,10,11,12,0,0);
+
+function buildRetinaTab(){
+  buildRetCtr();buildRetNotes();buildRetGoals();buildRetAulas();buildRetQuest();buildRetFlash();buildRetRev();
+}
+
+function buildRetCtr(){
+  const el=document.getElementById('ret-ctr');if(!el)return;
+  const days=Math.max(0,Math.ceil((RET_EXAM_DATE-T0)/86400000));
+  const retM=AULAS.find(a=>a.id==='retina');
+  const aulMin=retM?retM.aulas.reduce((s,a,i)=>s+(AC.retina&&AC.retina[i]?0:a.min),0):0;
+  const retQ=Q_MODS.find(m=>m.id==='ret');
+  let rqf=0,rqt=0;
+  if(retQ)[...retQ.as,...retQ.bl].forEach(i=>{const s=qGS(i.id);if(s.f)rqf+=+s.f;if(s.t)rqt+=+s.t;});
+  const rqp=rqt?Math.round(rqf/rqt*100):null;
+  const fMin=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  el.innerHTML=`<div class="rbox-ttl">Contadores — Prova 11/11/26</div>
+    <div class="rctr-row"><span class="rctr-v">${days}</span><span class="rctr-l">dias para a prova</span></div>
+    <div class="rctr-row"><span class="rctr-v">${aulMin}'</span><span class="rctr-l">min de aulas restantes</span></div>
+    <div class="rctr-row"><span class="rctr-v">${rqf}</span><span class="rctr-l">questões certas · ${rqp!==null?rqp+'% aprov.':'sem dados'}</span></div>
+    <div class="rctr-row"><span class="rctr-v">${(fMin/60).toFixed(1)}h</span><span class="rctr-l">de flashcards acumulados</span></div>`;
+}
+
+function buildRetNotes(){
+  const el=document.getElementById('ret-notes-box');if(!el)return;
+  const count=Object.keys(RNOTES).length;
+  const cntTxt=count?`<span style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace">${count} nota${count>1?'s':''} salva${count>1?'s':''}</span>`:'';
+  el.innerHTML=`<div class="rbox-ttl">Notas <button onclick="retPrintNotes()" style="float:right;font-size:9px;padding:1px 6px;cursor:pointer;border:1px solid var(--abd);border-radius:3px;background:var(--abg);color:var(--amb);font-family:'Courier New',monospace">imprimir</button></div>
+    <textarea class="rnote-ta" id="ret-ta" placeholder="Escreva aqui · ${fD(T0)}"></textarea>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:.25rem 0 .5rem">${cntTxt}<button onclick="retSaveNote()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--abd);border-radius:3px;background:var(--abg);color:var(--amb);font-family:'Courier New',monospace">salvar nota</button></div>`;
+}
+function retSaveNote(){
+  const el=document.getElementById('ret-ta');if(!el)return;
+  const val=el.value.trim();
+  if(!val)return;
+  const today=T0.toISOString().slice(0,10);
+  RNOTES[today]=val;
+  svRNOTES();
+  el.value='';
+  buildRetNotes();
+}
+function retDelNote(d){
+  if(!confirm('Excluir nota de '+fD(new Date(d+'T12:00:00'))+'?'))return;
+  delete RNOTES[d];svRNOTES();buildRetNotes();
+}
+function retPrintNotes(){
+  const entries=Object.entries(RNOTES).sort((a,b)=>a[0]<b[0]?-1:1);
+  if(!entries.length){alert('Nenhuma nota para imprimir.');return;}
+  const html=entries.map(([d,t])=>`
+    <div class="rnote-print-entry" id="rpe-${d}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+        <div style="font-size:11px;font-family:'Courier New',monospace;color:var(--amb)">${fD(new Date(d+'T12:00:00'))}</div>
+        <button class="no-print-chrome" onclick="retDelFromModal('${d}')" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:15px;padding:0;line-height:1" title="excluir nota">×</button>
+      </div>
+      <div style="white-space:pre-wrap;font-size:12px;font-family:Georgia,serif;line-height:1.6;color:var(--tx)">${t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    </div>`).join('');
+  document.getElementById('retPrintBody').innerHTML=html;
+  document.getElementById('retPrintMod').classList.add('open');
+}
+function retDelFromModal(d){
+  if(!confirm('Excluir nota de '+fD(new Date(d+'T12:00:00'))+'?'))return;
+  delete RNOTES[d];svRNOTES();
+  const el=document.getElementById('rpe-'+d);if(el)el.remove();
+  buildRetNotes();
+  if(!Object.keys(RNOTES).length)document.getElementById('retPrintMod').classList.remove('open');
+}
+document.getElementById('retPrintMod').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+
+function buildRetGoals(){
+  const el=document.getElementById('ret-goals-box');if(!el)return;
+  const today=T0.toISOString().slice(0,10);
+  const retQIds=new Set([...(Q_MODS.find(m=>m.id==='ret')?.as||[]),...(Q_MODS.find(m=>m.id==='ret')?.bl||[])].map(a=>a.id));
+  const days14=Array.from({length:14},(_,i)=>{const d=new Date(T0);d.setDate(d.getDate()-13+i);return d.toISOString().slice(0,10);});
+  function dayStats(iso){
+    const ddmmyy=fD(new Date(iso+'T12:00:00'));
+    const aulMin=SLOG.filter(e=>e.type==='aula'&&(e.mod==='retina'||/retina/i.test(e.lb||''))&&e.date===iso).reduce((s,e)=>s+(e.min||0),0);
+    const flashFromWidget=RFLASH.sessions.filter(e=>e.data===ddmmyy).reduce((s,e)=>s+(e.min||0),0);
+    const flashFromSlog=SLOG.filter(e=>e.type==='flash'&&e.date===iso&&/retina/i.test(e.assunto||'')).reduce((s,e)=>s+(e.min||0),0);
+    const flashMin=flashFromWidget+flashFromSlog;
+    const questN=SLOG.filter(e=>e.type==='quest'&&e.date===iso&&retQIds.has(e.id)).reduce((s,e)=>s+(+e.f||+e.t||0),0);
+    return{aulMin,flashMin,questN,ok:aulMin>=RGOALS.aulMin&&flashMin>=RGOALS.flashMin&&questN>=RGOALS.questN};
+  }
+  const results=days14.map(d=>({d,future:d>today,...(d<=today?dayStats(d):{ok:null})}));
+  let streak=0;
+  for(let i=results.length-1;i>=0;i--){if(results[i].d>today)continue;if(results[i].ok)streak++;else break;}
+  const last3=results.filter(r=>r.d<=today).slice(-3);
+  const alert3=last3.length>=3&&last3.every(r=>!r.ok);
+  const dotsHTML=results.map(r=>`<div class="rsd ${r.d===today?'hoje ':''} ${r.d>today?'emp':r.ok?'ok':'nok'}" title="${fD(new Date(r.d+'T12:00:00'))}"></div>`).join('');
+  el.innerHTML=`<div class="rbox-ttl">Metas diárias${alert3?' <span style="background:var(--rbg);color:var(--red);border:1px solid var(--rbd);border-radius:3px;font-size:8px;padding:1px 5px;margin-left:4px">⚠ 3+ dias</span>':''}</div>
+    <div style="display:flex;gap:10px;align-items:stretch;margin-bottom:.6rem">
+      <div style="flex:1;display:flex;flex-direction:column;gap:.3rem">
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Courier New',monospace"><span style="color:var(--tx2)">Aulas</span><span style="color:var(--amb)">${RGOALS.aulMin}'/dia</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Courier New',monospace"><span style="color:var(--tx2)">Flash</span><span style="color:var(--amb)">${RGOALS.flashMin}'/dia</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:'Courier New',monospace"><span style="color:var(--tx2)">Questões</span><span style="color:var(--amb)">${RGOALS.questN}/dia</span></div>
+        <button onclick="retEditGoals()" style="margin-top:.3rem;font-size:9px;padding:2px 7px;cursor:pointer;border:1px solid var(--abd);border-radius:3px;background:var(--abg);color:var(--amb);font-family:'Courier New',monospace;width:fit-content">editar metas</button>
+      </div>
+      <div style="border-left:1px solid var(--abd);padding-left:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:54px">
+        <div style="font-size:28px;color:${streak>0?'var(--amb)':'var(--tx3)'};font-family:'Courier New',monospace;line-height:1">${streak}</div>
+        <div style="font-size:9px;color:var(--tx3);text-align:center;text-transform:uppercase;letter-spacing:.04em;margin-top:2px">dias</div>
+      </div>
+    </div>
+    <div style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.3rem">Últimos 14 dias</div>
+    <div class="rsd-row">${dotsHTML}</div>`;
+}
+function retEditGoals(){
+  const a=prompt('Meta diária de aulas (minutos):',RGOALS.aulMin);if(a===null)return;
+  const f=prompt('Meta diária de flashcards (minutos):',RGOALS.flashMin);if(f===null)return;
+  const q=prompt('Meta diária de questões (total respondidas):',RGOALS.questN);if(q===null)return;
+  RGOALS={aulMin:+a||25,flashMin:+f||15,questN:+q||20};svRGOALS();buildRetGoals();
+}
+
+function buildRetAulas(){
+  const el=document.getElementById('ret-aulas-tab');if(!el)return;
+  const retM=AULAS.find(a=>a.id==='retina');
+  if(!retM){el.innerHTML='<div style="padding:.9rem"><div class="rbox-ttl">Aulas de Retina</div></div>';return;}
+  let done=0,mD=0,mT=0;
+  retM.aulas.forEach((a,i)=>{mT+=a.min;if(AC.retina&&AC.retina[i]){done++;mD+=a.min;}});
+  const tot=retM.aulas.length,pct=Math.round(done/tot*100)||0;
+  const pCol=pct>=80?'var(--grn)':pct>=40?'var(--amb)':'var(--red)';
+  const rows=retM.aulas.map((a,i)=>{
+    const ck=!!(AC.retina&&AC.retina[i]);
+    return`<div class="arow${ck?' done':''}" id="RAR${i}"><div class="ack${ck?' checked':''}" onclick="retToggleAula(${i})">${ck?'✓':''}</div><span class="an">${a.n}</span><span style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace;text-align:right">${a.min}'</span></div>`;
+  }).join('');
+  el.innerHTML=`<div style="padding:0 .9rem .5rem">
+    <div class="rbox-ttl">Aulas de Retina</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:.6rem">
+      <div class="card amb" style="padding:8px 10px"><div class="v">${done}/${tot}</div><div class="l">aulas</div></div>
+      <div class="card ${pct>=80?'grn':pct>=40?'amb':'red'}" style="padding:8px 10px"><div class="v">${pct}%</div><div class="l">concluído</div></div>
+      <div class="card" style="padding:8px 10px"><div class="v">${mD}'</div><div class="l">min vistos</div></div>
+    </div>
+    <div class="pb" style="margin-bottom:.5rem"><div class="pf" style="width:${pct}%;background:${pCol}"></div></div>
+  </div>
+  <div class="rau-list">${rows}</div>`;
+}
+function retToggleAula(i){
+  if(!AC.retina)AC.retina={};
+  const ck=!AC.retina[i];AC.retina[i]=ck;svAC();
+  const todayStr=T0.toISOString().slice(0,10);
+  const retM=AULAS.find(a=>a.id==='retina'),a=retM&&retM.aulas[i];
+  if(ck){
+    if(a&&!SLOG.find(e=>e.type==='aula'&&e.mod==='retina'&&e.idx===i&&e.date===todayStr)){
+      SLOG.push({type:'aula',date:todayStr,mod:'retina',lb:'Retina e Vítreo',idx:i,name:a.n,min:a.min});svSLOG();
+    }
+  }else{
+    const si=SLOG.findIndex(e=>e.type==='aula'&&e.mod==='retina'&&e.idx===i&&e.date===todayStr);
+    if(si>=0){SLOG.splice(si,1);svSLOG();}
+  }
+  buildRetAulas();buildRetCtr();buildRetGoals();buildRetina();
+  if(tBlt.aulas)buildAulas();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+}
+
+function buildRetQuest(){
+  const el=document.getElementById('ret-quest-tab');if(!el)return;
+  const mod=Q_MODS.find(m=>m.id==='ret');
+  if(!mod){el.innerHTML='<div style="padding:.9rem"><div class="rbox-ttl">Questões de Retina</div></div>';return;}
+  const allItems=[...mod.as,...mod.bl];
+  let mf=0,mt=0;
+  allItems.forEach(item=>{const s=qGS(item.id);if(s.f&&s.t){mf+=+s.f;mt+=+s.t;}});
+  const mp=mt?Math.round(mf/mt*100):null;
+  const pc2=mp!==null?qPCol(mp):'var(--tx3)';
+  const rowsHTML=allItems.map(item=>{
+    const s=qGS(item.id);
+    const ci=_qClearNext.has(item.id);
+    const f=ci?0:(+s.f||0),t=ci?0:(+s.t||0),p=f&&t?Math.round(f/t*100):null;
+    const c4=qC4(s.revDate);const ial=p!==null&&p<=60;
+    return`<div class="qrow${ial?' ar':''}" id="RRR${item.id}"><span class="qrn" style="font-size:12px">${item.n}</span><div class="qc2${ial?' ac':''}"><input class="qfi" type="number" min="0" placeholder="fez" value="${ci?'':(s.f||'')}" id="RF${item.id}" oninput="retQOnI('${item.id}')"><span class="qsl">/</span><input class="qfi" type="number" min="0" placeholder="tot" value="${ci?'':(s.t||'')}" id="RT${item.id}" oninput="retQOnI('${item.id}')"><span class="qpp ${ci?'':qPC(p)}" id="RP${item.id}">${ci?'—':(p!==null?p+'%':'—')}</span><button class="qokb" onclick="retQConc('${item.id}')">ok</button>${s.done&&!ci?`<button class="qnewb" onclick="retQNew('${item.id}')" title="nova sessão">↺</button>`:''}</div><div class="qc4 ${c4.c}">${c4.t}</div><button class="qdelb" onclick="retQDel('${item.id}')" title="limpar">×</button></div>`;
+  }).join('');
+  el.innerHTML=`<div style="padding:0 .9rem .5rem">
+    <div class="rbox-ttl">Questões de Retina</div>
+    <div style="display:flex;gap:6px;margin-bottom:.6rem">
+      <div class="card amb" style="flex:1;padding:8px 10px"><div class="v">${mf}</div><div class="l">certas</div></div>
+      <div class="card amb" style="flex:1;padding:8px 10px"><div class="v">${mt}</div><div class="l">total</div></div>
+      <div class="card ${mp!==null&&mp>=80?'grn':mp!==null&&mp>=61?'amb':'red'}" style="flex:1;padding:8px 10px"><div class="v">${mp!==null?mp+'%':'—'}</div><div class="l">aproveit.</div></div>
+    </div>
+    <div class="pb"><div class="pf" style="width:${mp||0}%;background:${pc2}"></div></div>
+  </div>
+  <div class="qclbl" style="padding:0 .9rem;margin-bottom:2px"><div>assunto</div><div>fez · % · ok</div><div>próxima revisão</div><div></div></div>
+  <div class="rq-list">${rowsHTML}</div>`;
+}
+function retQOnI(id){
+  const f=+document.getElementById('RF'+id)?.value||0,t=+document.getElementById('RT'+id)?.value||0;
+  const p=f&&t?Math.round(f/t*100):null;
+  const el=document.getElementById('RP'+id);
+  if(el){el.textContent=p!==null?p+'%':'—';el.className='qpp '+qPC(p);}
+}
+function retQNew(id){
+  const s=qGS(id);QS[id]={...s,f:'',t:'',done:false};svQ();
+  _qNewSess.add(id);_qClearNext.add(id);buildRetQuest();
+}
+function retQConc(id){
+  const f=+document.getElementById('RF'+id)?.value||0,t=+document.getElementById('RT'+id)?.value||0;
+  if(!f||!t){alert('Preencha feitas e total.');return;}
+  const p=Math.round(f/t*100),rd=qRD(f/t),rv=aDD(T0,rd),prev=qGS(id);
+  QS[id]={...prev,f,t,data:td(),done:true,revDays:rd,revDate:rv.toISOString(),revDone:false,rh:prev.rh||[]};
+  QH.unshift({id,lb:qGlb(id),f,t,p,data:td(),revDate:rv.toISOString(),revDays:rd});svQ();
+  const todayStr=T0.toISOString().slice(0,10);
+  const isNew=!prev.done||_qNewSess.has(id);_qNewSess.delete(id);
+  if(isNew){SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f,t,pct:p});}
+  else{const si=SLOG.findIndex(e=>e.type==='quest'&&e.id===id&&e.date===todayStr);if(si>=0){SLOG[si]={...SLOG[si],f,t,pct:p};}else{SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f,t,pct:p});}}
+  svSLOG();_qClearNext.add(id);_qNewSess.add(id);
+  buildRetQuest();buildRetCtr();buildRetRev();buildRetGoals();buildRetina();buildVisaoSide();
+  if(tBlt.questoes){buildQTop();buildQSide();buildQMods();}
+  if(tBlt.semana)renderSemAgenda();if(tBlt.historico)buildHist();
+  const mod=Q_MODS.find(m=>m.id==='ret'),item=[...(mod?.as||[]),...(mod?.bl||[])].find(a=>a.id===id);
+  document.getElementById('schedTit').textContent='Revisão agendada — '+(item?.n||id);
+  document.getElementById('schedMsg').innerHTML=`Você acertou <strong>${p}%</strong>.<br>Próxima revisão sugerida: <strong>${fD(rv)}</strong> (em ${rd} dias).`;
+  document.getElementById('schedDat').value=rv.toISOString().slice(0,10);
+  document.getElementById('schedModal').dataset.id=id;
+  document.getElementById('schedModal').dataset.lb=item?.n||id;
+  document.getElementById('schedModal').classList.add('open');
+}
+function retQDel(id){
+  if(!confirm('Limpar registro desta questão?'))return;
+  delete QS[id];QH=QH.filter(h=>h.id!==id);
+  SLOG=SLOG.filter(e=>!(e.type==='quest'&&e.id===id));svQ();svSLOG();
+  buildRetQuest();buildRetCtr();buildRetRev();buildRetGoals();buildRetina();
+  if(tBlt.questoes){buildQTop();buildQSide();buildQMods();}if(tBlt.historico)buildHist();
+}
+
+function buildRetFlash(){
+  const el=document.getElementById('ret-flash-tab');if(!el)return;
+  const total=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  const metaMin=RFLASH.metaMin,metaH=Math.round(metaMin/60);
+  const pct=Math.min(100,Math.round(total/metaMin*100));
+  const pCol=pct>=80?'var(--grn)':pct>=40?'var(--amb)':'var(--red)';
+  const wkMap={};
+  RFLASH.sessions.forEach(s=>{
+    const pts=s.data.split('/');
+    const d=new Date(2000+parseInt(pts[2]),parseInt(pts[1])-1,parseInt(pts[0]));
+    const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+    const wk=mon.toISOString().slice(0,10);
+    wkMap[wk]=(wkMap[wk]||0)+(s.min||0);
+  });
+  const wkVals=Object.values(wkMap);
+  const avgMin=wkVals.length?Math.round(wkVals.reduce((a,b)=>a+b,0)/wkVals.length):0;
+  const weeksLeft=Math.max(0,Math.ceil((RET_EXAM_DATE-T0)/7/86400000));
+  const proj=total+avgMin*weeksLeft;
+  const willMeet=proj>=metaMin;
+  const neededPW=weeksLeft>0?Math.ceil((metaMin-total)/weeksLeft):0;
+  el.innerHTML=`<div class="rbox-ttl">Flashcards de Retina</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:.6rem">
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:28px;color:var(--amb);font-family:'Courier New',monospace;line-height:1">${(total/60).toFixed(1)}h</div>
+        <div style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace;margin-top:2px">${total}' acumulados</div>
+      </div>
+      <div style="flex:1;font-size:10px;font-family:'Courier New',monospace;border-left:1px solid var(--abd);padding-left:9px;line-height:1.8;color:var(--tx2)">
+        Meta: <strong style="color:var(--amb)">${metaH}h</strong> · ${pct}%<br>
+        Média: <strong>${(avgMin/60).toFixed(1)}h/sem</strong><br>
+        Semanas rest.: <strong>${weeksLeft}</strong><br>
+        Projeção: <strong style="color:${willMeet?'var(--grn)':'var(--red)'}">${(proj/60).toFixed(1)}h</strong><br>
+        ${willMeet?'<span style="color:var(--grn)">✓ Meta atingível</span>':`<span style="color:var(--red)">↑ ${(neededPW/60).toFixed(1)}h/sem necessário</span>`}
+      </div>
+    </div>
+    <div class="pb" style="margin-bottom:.55rem"><div class="pf" style="width:${pct}%;background:${pCol}"></div></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <input type="number" min="1" placeholder="min." id="ret-fl-in" class="din" style="width:60px;font-size:12px">
+      <button onclick="retAddFlash()" style="padding:3px 10px;font-size:10px;cursor:pointer;border-radius:4px;background:var(--amb);color:#fff;border:none;font-family:'Courier New',monospace">+ log</button>
+      <button onclick="retFlashSetMeta()" style="padding:3px 7px;font-size:9px;cursor:pointer;border-radius:4px;background:var(--abg);color:var(--amb);border:1px solid var(--abd);font-family:'Courier New',monospace">meta</button>
+    </div>`;
+}
+function retAddFlash(){
+  const el=document.getElementById('ret-fl-in');
+  const min=parseInt(el?.value)||0;if(!min){alert('Informe os minutos.');return;}
+  RFLASH.sessions.push({data:td(),min});svRFLASH();if(el)el.value='';
+  buildRetFlash();buildRetCtr();buildRetGoals();buildRetina();
+  if(tBlt.semana)renderSemAgenda();if(tBlt.flashcards)buildFlash();
+}
+function retFlashSetMeta(){
+  const m=prompt('Meta total de flashcards de retina (horas):',(RFLASH.metaMin/60).toFixed(0));
+  if(m&&+m>0){RFLASH.metaMin=Math.round(+m*60);svRFLASH();buildRetFlash();buildRetina();}
+}
+
+function buildRetRev(){
+  const el=document.getElementById('ret-rev-tab');if(!el)return;
+  const mod=Q_MODS.find(m=>m.id==='ret');
+  if(!mod){el.innerHTML='<div class="rbox-ttl">Próximas Revisões</div>';return;}
+  const items=[...mod.as,...mod.bl].filter(item=>{
+    const s=qGS(item.id);
+    return s.revDate&&!s.revDone&&Math.round((new Date(s.revDate)-T0)/86400000)<=30;
+  }).sort((a,b)=>new Date(qGS(a.id).revDate)-new Date(qGS(b.id).revDate));
+  const urg=items.filter(i=>Math.round((new Date(qGS(i.id).revDate)-T0)/86400000)<0).length;
+  const html=items.length?items.map(item=>{
+    const s=qGS(item.id),df=Math.round((new Date(s.revDate)-T0)/86400000);
+    const t=+s.t||(QH.find(h=>h.id===item.id)?.t)||0;
+    return`<div class="rrev-item ${df<0?'urg':'pend'}" onclick="togRetRev('rrv_${item.id}')" style="cursor:pointer">
+      <div style="font-weight:500">${item.n.length>34?item.n.slice(0,34)+'…':item.n}</div>
+      <div style="font-size:9px;margin-top:1px;opacity:.85">${s.f}/${s.t} · ${df<0?'⚠ '+Math.abs(df)+'d atraso':'em '+df+'d · '+fD(new Date(s.revDate))}</div>
+    </div>
+    <div id="rrv_${item.id}" style="display:none;flex-direction:column;gap:4px;padding:.35rem .5rem .45rem;background:var(--abg);border:1px solid var(--abd);border-radius:5px;margin-top:3px">
+      <div style="font-size:9px;color:var(--tx3);font-family:'Courier New',monospace">acertos / total</div>
+      <div style="display:flex;gap:5px;align-items:center">
+        <input type="number" min="0" max="${t||999}" id="RRVA_${item.id}" placeholder="acertos" style="width:60px;padding:3px 5px;border:1px solid var(--abd);border-radius:4px;font-size:12px;font-family:'Courier New',monospace;text-align:center">
+        <span style="color:var(--tx3)">/</span>
+        <input type="number" min="1" id="RRVT_${item.id}" placeholder="total" value="${t||''}" style="width:55px;padding:3px 5px;border:1px solid var(--abd);border-radius:4px;font-size:12px;font-family:'Courier New',monospace;text-align:center">
+        <button onclick="doRetRev('${item.id}')" style="padding:3px 9px;font-size:10px;cursor:pointer;border-radius:4px;background:var(--amb);color:#fff;border:none;font-family:'Courier New',monospace">ok</button>
+      </div>
+    </div>`;
+  }).join(''):'<div style="font-size:10px;color:var(--tx3);font-style:italic;padding:.3rem">Nenhuma revisão nos próximos 30 dias.</div>';
+  el.innerHTML=`<div class="rbox-ttl">Próximas Revisões <span style="background:var(--abg);color:var(--amb);border:1px solid var(--abd);border-radius:10px;font-size:9px;padding:1px 6px;margin-left:4px">${items.length||''}</span>${urg?` <span style="background:var(--rbg);color:var(--red);border:1px solid var(--rbd);border-radius:10px;font-size:9px;padding:1px 6px">⚠ ${urg}</span>`:''}</div>
+    <div>${html}</div>`;
+}
+function togRetRev(pid){
+  const el=document.getElementById(pid);if(!el)return;
+  const vis=el.style.display!=='none';
+  document.querySelectorAll('[id^="rrv_"]').forEach(e=>e.style.display='none');
+  if(!vis){el.style.display='flex';}
+}
+function doRetRev(id){
+  const s=qGS(id);
+  const ac=+document.getElementById('RRVA_'+id)?.value||0;
+  const t=+document.getElementById('RRVT_'+id)?.value||+s.t||(QH.find(h=>h.id===id)?.t)||0;
+  if(!ac||!t){alert('Preencha acertos e total.');return;}
+  const p=Math.round(ac/t*100),rd=qRD(ac/t),rv=aDD(T0,rd),rh=[...(s.rh||[]),{data:td(),p,ac,t}];
+  QS[id]={...s,rh,revDate:rv.toISOString(),revDays:rd,revDone:false};
+  QH.unshift({id,lb:qGlb(id),f:ac,t,p,data:td(),revDate:rv.toISOString(),revDays:rd,isR:true});
+  svQ();
+  const todayStr=T0.toISOString().slice(0,10);
+  const si=SLOG.findIndex(e=>e.type==='quest'&&e.id===id&&e.date===todayStr);
+  if(si>=0){SLOG[si]={...SLOG[si],f:ac,t,pct:p,isR:true};}else{SLOG.push({type:'quest',date:todayStr,id,lb:qGlb(id),f:ac,t,pct:p,isR:true});}
+  svSLOG();
+  buildRetRev();buildRetCtr();buildRetGoals();
+  buildVisaoSide();buildQSide();buildQHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.questoes){buildQTop();buildQMods();}
+}
+
+// ── HISTÓRICO ─────────────────────────────────────────────────────
+function buildHist(){
+  const body=document.getElementById('hbody');
+  if(!SLOG.length){
+    body.innerHTML='<div style="font-size:12px;color:var(--tx3);padding:1.5rem;text-align:center;font-family:Georgia,serif">Nenhuma semana registrada ainda.</div>';
+    ['avga','avgq','avgf'].forEach(id=>document.getElementById(id).textContent='—');
+    document.getElementById('avgalert').style.display='none';
+    return;
+  }
+  const wkMap={};
+  SLOG.forEach((e,si)=>{
+    const d=new Date(e.date+'T00:00:00');
+    const wk=WEEKS.find(w=>d>=w.start&&d<new Date(w.start.getTime()+7*86400000));
+    if(!wk)return;
+    if(!wkMap[wk.id])wkMap[wk.id]={wk,entries:[]};
+    wkMap[wk.id].entries.push({e,si});
+  });
+  const weeks=Object.values(wkMap).sort((a,b)=>b.wk.start-a.wk.start);
+  body.innerHTML=weeks.map(({wk,entries})=>{
+    const aulas=entries.filter(({e})=>e.type==='aula');
+    const quests=entries.filter(({e})=>e.type==='quest');
+    const flashes=entries.filter(({e})=>e.type==='flash');
+    const tMin=aulas.reduce((s,{e})=>s+(e.min||0),0);
+    const tQF=quests.reduce((s,{e})=>s+(+e.f||0),0),tQT=quests.reduce((s,{e})=>s+(+e.t||0),0);
+    const tFL=flashes.reduce((s,{e})=>s+(e.min||0),0);
+    const pQ=tQT?Math.round(tQF/tQT*100):null;
+    const stats=[
+      aulas.length?`${aulas.length} aula${aulas.length!==1?'s':''} · ${tMin}min`:'',
+      pQ!==null?`quest ${pQ}%`:'',
+      tFL?`flash ${tFL}min`:''
+    ].filter(Boolean).join(' · ');
+    const evHtml=entries.map(({e,si})=>{
+      const cls=e.type==='aula'?'s-aula':e.type==='quest'?'s-quest':'s-flash';
+      const txt=e.type==='aula'?`${e.lb} · ${e.name} (${e.min}min)`:e.type==='quest'?`${e.lb} ${e.f}/${e.t} (${e.pct}%)`:e.type==='flash'?`Flashcards: ${e.assunto} · ${e.min}min`:'';
+      const dt=e.date?e.date.slice(5).replace('-','/'):' ';
+      return`<div class="sem-ev ${cls}"><span class="hwk-dt">${dt}</span><span>${txt}</span><span class="sem-ev-del" onclick="histDel(${si})" title="remover">×</span></div>`;
+    }).join('');
+    return`<div class="hwk"><div class="hwk-hdr"><div class="hwk-lbl">${wk.label}</div><div class="hwk-mod">${wk.mod}</div><div class="hwk-stats">${stats}</div></div><div class="hwk-evs">${evHtml}</div></div>`;
+  }).join('');
+  const allW=Object.values(wkMap);
+  const mAArr=allW.map(({entries})=>entries.filter(({e})=>e.type==='aula').reduce((s,{e})=>s+(e.min||0),0));
+  const mQArr=allW.map(({entries})=>{const f=entries.filter(({e})=>e.type==='quest').reduce((s,{e})=>s+(+e.f||0),0),t=entries.filter(({e})=>e.type==='quest').reduce((s,{e})=>s+(+e.t||0),0);return t?Math.round(f/t*100):null;}).filter(x=>x!==null);
+  const mFArr=allW.map(({entries})=>entries.filter(({e})=>e.type==='flash').reduce((s,{e})=>s+(e.min||0),0)).filter(x=>x>0);
+  const avg=arr=>arr.length?Math.round(arr.reduce((a,b)=>a+b,0)/arr.length):null;
+  const mA=avg(mAArr),mQ=avg(mQArr),mF=avg(mFArr);
+  document.getElementById('avga').textContent=mA!==null?mA+'min':'—';
+  document.getElementById('avgq').textContent=mQ!==null?mQ+'%':'—';
+  document.getElementById('avgf').textContent=mF!==null?mF+'min':'—';
+  const al=document.getElementById('avgalert');
+  if(mQ!==null){
+    al.style.cssText=`display:block;padding:.55rem .9rem;border-radius:6px;font-size:11px;line-height:1.6;background:${mQ>=80?'var(--gbg)':mQ>=60?'var(--abg)':'var(--rbg)'};color:${mQ>=80?'var(--grn)':mQ>=60?'var(--amb)':'var(--red)'};border:1px solid ${mQ>=80?'var(--gbd)':mQ>=60?'var(--abd)':'var(--rbd)'}`;
+    al.textContent='Aproveitamento médio questões: '+mQ+'%. '+(mQ>=80?'Excelente — mantenha o ritmo.':mQ>=60?'Bom — busque 80%.':'Abaixo da meta — revisar estratégia de estudo.');
+  }else al.style.display='none';
+}
+function histDel(si){
+  const e=SLOG[si];if(!e)return;
+  SLOG.splice(si,1);svSLOG();
+  if(e.type==='quest'){
+    delete QS[e.id];QH=QH.filter(h=>h.id!==e.id);svQ();
+    if(tBlt.questoes){buildQTop();buildQSide();buildQMods();}
+  }
+  if(e.type==='aula'){
+    if(AC[e.mod]&&AC[e.mod][e.idx]!==undefined){AC[e.mod][e.idx]=false;svAC();}
+    if(tBlt.aulas)buildAulas();
+  }
+  buildHist();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.retina){buildRetGoals();buildRetRev();}
+}
+
+// ── SEMANA ────────────────────────────────────────────────────────
+function semMapMod(mod){
+  const m=(mod||'').toLowerCase();
+  if(m.includes('retina'))return'retina';
+  if(m.includes('glaucoma'))return'glaucoma';
+  if(m.includes('uveítes')||m.includes('uveites'))return'uveites';
+  if(m.includes('óptica')||m.includes('optica'))return'optica';
+  if(m.includes('plástica')||m.includes('plastica'))return'plastica';
+  if(m.includes('estrabismo'))return'estrabismo';
+  if(m.includes('oncologia')||m.includes('tumor'))return'oncologia';
+  if(m.includes('córnea')||m.includes('cornea'))return'cornea';
+  if(m.includes('cristalino')||m.includes('catarata'))return'cristalino';
+  return null;
+}
+let semViewWk=null;
+let _semAS=null,_semQSel=null,_semFSel=null;
+let _semAList=null,_semQList=null;
+
+function semGetAList(){
+  if(!_semAList){_semAList=[];AULAS.forEach(m=>m.aulas.forEach((a,i)=>_semAList.push({mod:m.id,lb:m.label,idx:i,name:a.n,min:a.min})));}
+  return _semAList;
+}
+function semGetQList(){
+  if(!_semQList){
+    _semQList=[];
+    Q_MODS.forEach(m=>{
+      m.as.forEach(a=>_semQList.push({id:a.id,name:a.n,lb:m.lb+' · '+a.n,isBl:false}));
+      m.bl.forEach(b=>_semQList.push({id:b.id,name:b.n,lb:m.lb+' · '+b.n,isBl:true}));
+    });
+  }
+  return _semQList;
+}
+const FLASH_GERAL_META_H=200;
+const FLASH_GERAL_DATE=new Date(2027,0,20,12,0,0);
+function buildFlash(){
+  const c=document.getElementById('flashcards');
+  // ── Meta bar ──
+  const totalMin=SLOG.filter(e=>e.type==='flash').reduce((s,e)=>s+(e.min||0),0);
+  const metaMin=FLASH_GERAL_META_H*60;
+  const pct=Math.min(100,Math.round(totalMin/metaMin*100));
+  // Weekly average
+  const wkMap={};
+  SLOG.filter(e=>e.type==='flash').forEach(e=>{
+    const d=new Date(e.date+'T00:00:00');
+    const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+    const wk=mon.toISOString().slice(0,10);wkMap[wk]=(wkMap[wk]||0)+(e.min||0);
+  });
+  const wkVals=Object.values(wkMap);
+  const avgMin=wkVals.length?Math.round(wkVals.reduce((a,b)=>a+b,0)/wkVals.length):0;
+  const weeksLeft=Math.max(0,Math.ceil((FLASH_GERAL_DATE-T0)/7/86400000));
+  const proj=totalMin+avgMin*weeksLeft;
+  const willMeet=proj>=metaMin;
+  const neededPW=weeksLeft>0?Math.ceil((metaMin-totalMin)/weeksLeft):0;
+  // This week
+  const monStr=(()=>{const d=new Date(T0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.toISOString().slice(0,10);})();
+  const thisWkMin=SLOG.filter(e=>e.type==='flash'&&e.date>=monStr).reduce((s,e)=>s+(e.min||0),0);
+  const pCol=pct>=80?'var(--grn)':pct>=40?'var(--amb)':'var(--red)';
+  const cards=FLASH_DECKS.map(deck=>{
+    const mins=SLOG.filter(e=>e.type==='flash'&&e.assunto===deck).reduce((s,e)=>s+(e.min||0),0);
+    const nm=deck.replace('zOFT - ','');
+    return`<div class="fc-card"><div class="fc-name">${nm}</div><div class="fc-time"><div class="fc-tv">${mins}<span>'</span></div><div class="fc-tl">tempo total estudado</div></div></div>`;
+  }).join('');
+  const hist=SLOG.map((e,si)=>({e,si})).filter(({e})=>e.type==='flash').sort((a,b)=>b.e.date.localeCompare(a.e.date));
+  const histRows=hist.length?hist.map(({e,si})=>{
+    const nm=(e.assunto||'—').replace('zOFT - ','');
+    return`<div class="fh-row"><span class="fh-dt">${e.date.slice(5).replace('-','/')}</span><span class="fh-nm">${nm.length>34?nm.slice(0,34)+'…':nm}</span><span class="fh-min">${e.min}'</span><button class="fh-del" onclick="flashHistDel(${si})" title="remover">×</button></div>`;
+  }).join(''):'<div class="fh-empty">Nenhuma sessão registrada ainda. Use a aba Semana para registrar sessões.</div>';
+  c.innerHTML=`<div class="sec">flashcards</div>
+    <div style="background:var(--sf2);border:1px solid var(--bd2);border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-family:'Courier New',monospace">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:.5rem;flex-wrap:wrap">
+        <div style="text-align:center;flex-shrink:0">
+          <div style="font-size:26px;color:#1a5fa8;line-height:1">${(totalMin/60).toFixed(1)}h</div>
+          <div style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${totalMin}' acumulados</div>
+        </div>
+        <div style="flex:1;font-size:10px;color:var(--tx2);line-height:1.8;border-left:1px solid var(--bd);padding-left:12px;min-width:140px">
+          Meta: <strong style="color:#1a5fa8">${FLASH_GERAL_META_H}h</strong> até 20/01/27 · ${pct}%<br>
+          Esta semana: <strong>${(thisWkMin/60).toFixed(1)}h</strong><br>
+          Média semanal: <strong>${(avgMin/60).toFixed(1)}h/sem</strong> · ${weeksLeft} sem. rest.<br>
+          Projeção: <strong style="color:${willMeet?'var(--grn)':'var(--red)'}">${(proj/60).toFixed(1)}h</strong>
+          ${weeksLeft>0?(willMeet?'<span style="color:var(--grn)"> ✓ Meta atingível</span>':`<span style="color:var(--red)"> ↑ ${(neededPW/60).toFixed(1)}h/sem necessário</span>`):'<span style="color:var(--tx3)"> prazo encerrado</span>'}
+        </div>
+      </div>
+      <div class="pb"><div class="pf" style="width:${pct}%;background:${pCol}"></div></div>
+    </div>
+    <div class="fc-grid">${cards}</div><div class="divider"></div><div class="sec">histórico de sessões</div><div class="fh-hdr"><span>data</span><span>deck</span><span>min</span><span></span></div><div class="fh-body">${histRows}</div>${totalMin?`<div class="fh-total">total acumulado: <strong>${totalMin}'</strong> · ${(totalMin/60).toFixed(1)}h</div>`:''}`;
+}
+function flashHistDel(si){
+  const e=SLOG[si];
+  if(!e||e.type!=='flash')return;
+  if(!confirm('Remover esta sessão do histórico de flashcards?'))return;
+  SLOG.splice(si,1);svSLOG();
+  buildFlash();
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+}
+const FLASH_DECKS=[
+  'zOFT - Catarata',
+  'zOFT - Cirurgia Refrativa e Lentes',
+  'zOFT - Conjuntiva',
+  'zOFT - Córnea',
+  'zOFT - Esclera',
+  'zOFT - Estrabismo',
+  'zOFT - Farmacologia',
+  'zOFT - Glaucoma',
+  'zOFT - Neuroftalmologia',
+  'zOFT - Plástica Ocular & Estrabismo',
+  'zOFT - Retina e Vítreo',
+  'zOFT - Transplante de Córnea',
+  'zOFT - Tumores Intraoculares',
+  'zOFT - Uveítes',
+  'zOFT - Óptica e Refração',
+  'zOFT - Órbita',
+];
+function semGetFList(){
+  const fromSlog=[...new Set(SLOG.filter(e=>e.type==='flash').map(e=>e.assunto))];
+  return[...new Set([...FLASH_DECKS,...fromSlog])];
+}
+
+function buildSemana(){
+  if(!semViewWk)semViewWk=(WEEKS.find(w=>T0>=w.start&&T0<new Date(w.start.getTime()+7*86400000))||WEEKS[0]).id;
+  renderSemAgenda();
+}
+function renderSemAgenda(){
+  const MNF=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const DNF=['segunda','terça','quarta','quinta','sexta','sábado','domingo'];
+  const wk=WEEKS.find(w=>w.id===semViewWk)||WEEKS[0];
+  const wkN=Math.floor((wk.start-new Date(2026,0,1))/(7*86400000))+1;
+  const ts=T0.toISOString().slice(0,10);
+  const days=Array.from({length:7},(_,i)=>{
+    const d=new Date(wk.start.getTime()+i*86400000);
+    const ds=d.toISOString().slice(0,10);
+    return{date:ds,day:d.getDate(),dn:DNF[i],isTd:ds===ts};
+  });
+  document.getElementById('sem-agenda').innerHTML=`
+    <div class="sem-ahdr">
+      <div class="sem-ahdr-ttl">${MNF[wk.start.getMonth()]} · semana ${wkN}</div>
+      <div class="sem-anav">
+        <button onclick="semNav(-1)">‹</button>
+        <button onclick="semNavTd()">hoje</button>
+        <button onclick="semNav(1)">›</button>
+      </div>
+    </div>
+    <div class="sem-days">${days.map(d=>{
+      const evs=SLOG.filter(e=>e.date===d.date);
+      const cevs=CEV.filter(e=>e.dat===d.date);
+      const cevHtml=cevs.map(ev=>{const idx=CEV.indexOf(ev);return`<div class="sem-ev s-quest" style="background:#f5eafd;color:#6b21a8;border-color:#d8b4fe"><span>${ev.tit.length>32?ev.tit.slice(0,32)+'…':ev.tit}</span><span class="sem-ev-del" onclick="delCEV(${idx})" title="remover">×</span></div>`;}).join('');
+      return`<div class="sem-day${d.isTd?' s-today':''}">
+        <div class="sem-dlbl"><div class="sem-dnum">${d.day}</div><div class="sem-dnm">${d.dn}</div></div>
+        <div class="sem-devs">${evs.map(e=>semEvHtml(e,SLOG.indexOf(e))).join('')}${cevHtml}${d.isTd&&!evs.length&&!cevs.length?'<span class="sem-hint">registre ao lado →</span>':''}</div>
+      </div>`;
+    }).join('')}</div>`;
+  const db=document.getElementById('sem-db');
+  if(db)db.textContent='Hoje · '+T0.getDate().toString().padStart(2,'0')+'/'+(T0.getMonth()+1).toString().padStart(2,'0');
+}
+function semEvHtml(e,idx){
+  const cls=e.type==='aula'?'s-aula':e.type==='quest'?'s-quest':'s-flash';
+  const txt=e.type==='aula'?`${e.lb} · ${e.name} (${e.min}min)`:e.type==='quest'?`${e.lb} ${e.f}/${e.t} (${e.pct}%)`:e.type==='flash'?`Flashcards: ${e.assunto} · ${e.min}min`:'';
+  return`<div class="sem-ev ${cls}"><span>${txt}</span><span class="sem-ev-del" onclick="semDel(${idx})" title="remover">×</span></div>`;
+}
+function semDel(idx){
+  if(!confirm('Remover este registro?'))return;
+  const e=SLOG[idx];
+  SLOG.splice(idx,1);svSLOG();
+  if(e.type==='quest'){
+    delete QS[e.id];
+    QH=QH.filter(h=>h.id!==e.id);
+    svQ();
+    if(tBlt.questoes){buildQTop();buildQSide();buildQMods();}
+  }
+  if(e.type==='aula'){
+    if(AC[e.mod]&&AC[e.mod][e.idx]!==undefined){AC[e.mod][e.idx]=false;svAC();}
+    if(tBlt.aulas)buildAulas();
+  }
+  renderSemAgenda();
+  if(tBlt.historico)buildHist();
+}
+function semNav(d){
+  const i=WEEKS.findIndex(w=>w.id===semViewWk);
+  semViewWk=WEEKS[Math.max(0,Math.min(WEEKS.length-1,i+d))].id;
+  renderSemAgenda();
+}
+function semNavTd(){
+  semViewWk=(WEEKS.find(w=>T0>=w.start&&T0<new Date(w.start.getTime()+7*86400000))||WEEKS[0]).id;
+  renderSemAgenda();
+}
+
+// Aulas
+function semASearch(q){
+  const res=document.getElementById('sem-ar');
+  const items=semGetAList().filter(a=>!q||a.name.toLowerCase().includes(q.toLowerCase())||a.lb.toLowerCase().includes(q.toLowerCase())).slice(0,12);
+  if(!items.length){res.className='sem-res';return;}
+  res.className='sem-res open';
+  res.innerHTML=items.map(a=>`<div class="sem-ri" onmousedown="semASel('${a.mod}',${a.idx})">${a.lb} · ${a.name} <em style="color:var(--tx3);font-size:9px;font-style:normal">${a.min}min</em></div>`).join('');
+}
+function semAOpen(){semASearch(document.getElementById('sem-aq').value||'');}
+function semASel(mod,idx){
+  _semAS=semGetAList().find(a=>a.mod===mod&&a.idx===idx);
+  if(!_semAS)return;
+  document.getElementById('sem-aq').value=_semAS.name;
+  document.getElementById('sem-ar').className='sem-res';
+  document.getElementById('sem-asel').style.display='block';
+  document.getElementById('sem-asel-nm').textContent=_semAS.lb+' · '+_semAS.name+' ('+_semAS.min+'min)';
+}
+function semAOK(){
+  if(!_semAS){alert('Selecione uma aula primeiro.');return;}
+  SLOG.push({type:'aula',date:T0.toISOString().slice(0,10),mod:_semAS.mod,lb:_semAS.lb,idx:_semAS.idx,name:_semAS.name,min:_semAS.min});
+  svSLOG();
+  if(!AC[_semAS.mod])AC[_semAS.mod]={};
+  AC[_semAS.mod][_semAS.idx]=true;svAC();
+  _semAS=null;
+  document.getElementById('sem-aq').value='';
+  document.getElementById('sem-asel').style.display='none';
+  renderSemAgenda();
+  if(tBlt.aulas)buildAulas();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina)buildRetGoals();
+}
+
+// Questões
+function semQSearch(q){
+  const res=document.getElementById('sem-qr');
+  const items=semGetQList().filter(a=>!q||a.lb.toLowerCase().includes(q.toLowerCase())).slice(0,12);
+  if(!items.length){res.className='sem-res';return;}
+  res.className='sem-res open';
+  res.innerHTML=items.map(a=>`<div class="sem-ri" onmousedown="semQSel('${a.id}')">${a.lb}</div>`).join('');
+}
+function semQOpen(){semQSearch(document.getElementById('sem-qq').value||'');}
+function semQSel(id){
+  _semQSel=semGetQList().find(q=>q.id===id);
+  if(!_semQSel)return;
+  document.getElementById('sem-qq').value=_semQSel.name;
+  document.getElementById('sem-qr').className='sem-res';
+  document.getElementById('sem-qsel').style.display='block';
+  document.getElementById('sem-qsel-nm').textContent=_semQSel.lb;
+  const s=qGS(id);
+  if(s.f)document.getElementById('sem-qf').value=s.f;
+  if(s.t)document.getElementById('sem-qt').value=s.t;
+  semQPct();
+}
+function semQPct(){
+  const f=+document.getElementById('sem-qf').value||0,t=+document.getElementById('sem-qt').value||0;
+  document.getElementById('sem-qpct').textContent=f&&t?Math.round(f/t*100)+'%':'—';
+}
+function semQOK(){
+  if(!_semQSel){alert('Selecione uma questão primeiro.');return;}
+  const f=+document.getElementById('sem-qf').value||0,t=+document.getElementById('sem-qt').value||0;
+  if(!f||!t){alert('Preencha feitas e total.');return;}
+  const pct=Math.round(f/t*100),rd=qRD(f/t),rv=aDD(T0,rd);
+  SLOG.push({type:'quest',date:T0.toISOString().slice(0,10),id:_semQSel.id,lb:_semQSel.lb,f,t,pct});
+  svSLOG();
+  const prev=qGS(_semQSel.id);
+  QS[_semQSel.id]={...prev,f:f+'',t:t+'',done:true,data:td(),revDays:rd,revDate:rv.toISOString(),revDone:false,rh:prev.rh||[]};
+  QH.unshift({id:_semQSel.id,lb:_semQSel.lb,f,t,p:pct,data:td(),revDate:rv.toISOString(),revDays:rd});
+  svQ();
+  _semQSel=null;
+  document.getElementById('sem-qq').value='';
+  document.getElementById('sem-qf').value='';
+  document.getElementById('sem-qt').value='';
+  document.getElementById('sem-qpct').textContent='—';
+  document.getElementById('sem-qsel').style.display='none';
+  renderSemAgenda();
+  if(tBlt.questoes){buildQTop();buildQSide();buildQMods();buildQHist();}
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina){buildRetGoals();buildRetRev();}
+}
+
+// Flashcards
+function semFSearch(q){
+  const res=document.getElementById('sem-fr');
+  const items=semGetFList().filter(s=>!q||s.toLowerCase().includes(q.toLowerCase())).slice(0,8);
+  if(!items.length){res.className='sem-res';return;}
+  res.className='sem-res open';
+  res.innerHTML=items.map(s=>`<div class="sem-ri" onmousedown="semFSel('${s.replace(/'/g,'\\'+'\'')}')">${s}</div>`).join('');
+}
+function semFOpen(){semFSearch(document.getElementById('sem-fq').value||'');}
+function semFSel(assunto){
+  _semFSel=assunto;
+  document.getElementById('sem-fq').value=assunto;
+  document.getElementById('sem-fr').className='sem-res';
+  document.getElementById('sem-fsel').style.display='block';
+  document.getElementById('sem-fsel-nm').textContent=assunto;
+}
+// ── SIZE PANEL ──────────────────────────────────────────────────────
+// Each entry: [key, label, default, selector, property]
+// property='' means custom CSS handled in szGenCSS
+const SZ_DEFS={
+  global:[
+    ['bodyPad','Body padding',14,'body','padding'],
+    ['tabPV','Tab pad V',9,'.tab','padding-top'],
+    ['tabPH','Tab pad H',36,'.tab','padding-left'],
+    ['tabFs','Tab font',14,'.tab','font-size'],
+    ['tabsMb','Tabs margin-bot',26,'.tabs','margin-bottom'],
+  ],
+  visao:[
+    ['vCtrV','Ctr valor',31,'#visao .ctr .v','font-size'],
+    ['vCtrL','Ctr label',9,'#visao .ctr .l','font-size'],
+    ['vCtrPV','Ctr pad V',3,'#visao .ctr','padding-top'],
+    ['vCtrPH','Ctr pad H',15,'#visao .ctr','padding-left'],
+    ['vCtrsGap','Ctrs gap',23,'#visao .ctrs','gap'],
+    ['vCardV','Card valor',22,'#visao .card .v','font-size'],
+    ['vCardPV','Card pad V',21,'#visao .card','padding-top'],
+    ['vCardPH','Card pad H',17,'#visao .card','padding-left'],
+    ['vGap','Grid gap',14,'#visao .g3,#visao .g4','gap'],
+    ['vColGap','Colunas gap',64,'#visao .vg2col','gap'],
+    ['vBtnPV','Btn pad V',15,'#visao .vgbtn','padding-top'],
+    ['vBtnPH','Btn pad H',16,'#visao .vgbtn','padding-left'],
+    ['vBtnFs','Btn font',12,'#visao .vgbtn','font-size'],
+    ['vSHdrPV','Side hdr V',11,'#visao .qshdr','padding-top'],
+    ['vSHdrPH','Side hdr H',9,'#visao .qshdr','padding-left'],
+    ['vSHdrFs','Side hdr fs',14,'#visao .qshdr','font-size'],
+    ['vSItemPV','Side item V',14,'#visao .qsi1l','padding-top'],
+    ['vSItemPH','Side item H',7,'#visao .qsi1l','padding-left'],
+    ['vSItemFs','Side item fs',11,'#visao .qsi1l','font-size'],
+  ],
+  semana:[
+    ['sDnum','Dia num',32,'#semana .sem-dnum','font-size'],
+    ['sDayColW','Dia col W',108,'',''],
+    ['sEvFs','Evento font',12,'#semana .sem-ev','font-size'],
+    ['sEvPV','Evento pad V',3,'#semana .sem-ev','padding-top'],
+    ['sEvPH','Evento pad H',15,'#semana .sem-ev','padding-left'],
+    ['sDevsGap','Devs gap',7,'#semana .sem-devs','gap'],
+    ['sSideW','Sidebar W',440,'',''],
+    ['sWrapGap','Wrap gap',48,'',''],
+    ['sCardPad','Card pad',36,'#semana .sem-card','padding'],
+    ['sCardTtlFs','Card título',19,'#semana .sem-ct','font-size'],
+    ['sCardSubFs','Card subtít',15,'#semana .sem-si','font-size'],
+  ],
+  aulas:[
+    ['aCardPV','Card pad V',15,'#aulas .card','padding-top'],
+    ['aCardPH','Card pad H',23,'#aulas .card','padding-left'],
+    ['aCardV','Card valor',28,'#aulas .card .v','font-size'],
+    ['aGap','Grid gap',21,'#aulas .g4','gap'],
+    ['aHdrPV','Hdr pad V',15,'#aulas .mhdr','padding-top'],
+    ['aHdrFs','Hdr font',14,'#aulas .mttl','font-size'],
+    ['aRowPV','Row pad V',4,'#aulas .arow','padding-top'],
+    ['aRowPH','Row pad H',18,'#aulas .arow','padding-left'],
+    ['aRowFs','Row font',15,'#aulas .arow','font-size'],
+    ['aAckSz','Ack size',16,'#aulas .ack','width'],
+  ],
+  questoes:[
+    ['qCtrPV','Ctr pad V',19,'#questoes .q3c','padding-top'],
+    ['qCtrV','Ctr valor',32,'#questoes .q3c .v','font-size'],
+    ['qModHdrPV','Mod hdr V',7,'#questoes .qmh','padding-top'],
+    ['qModHdrPH','Mod hdr H',12,'#questoes .qmh','padding-left'],
+    ['qModTtlFs','Mod título',15,'#questoes .qmt','font-size'],
+    ['qRowPV','Row pad V',6,'#questoes .qrow','padding-top'],
+    ['qRowPH','Row pad H',16,'#questoes .qrow','padding-left'],
+    ['qRowFs','Row font',14,'#questoes .qrn','font-size'],
+    ['qSideW','Sidebar W',320,'',''],
+  ],
+  flashcards:[
+    ['fcGridGap','Grid gap',14,'.fc-grid','gap'],
+    ['fcCardPV','Card pad V',16,'.fc-card','padding-top'],
+    ['fcCardPH','Card pad H',16,'.fc-card','padding-left'],
+    ['fcCardV','Card valor',24,'.fc-tv','font-size'],
+    ['fcNameFs','Nome font',10,'.fc-name','font-size'],
+    ['fhRowFs','Hist font',11,'.fh-row','font-size'],
+  ],
+  retina:[
+    ['rBoxPV','Box pad V',14,'#retina .rbox','padding-top'],
+    ['rBoxPH','Box pad H',14,'#retina .rbox','padding-left'],
+    ['rTopGap','Top gap',14,'#retina .ret-top','gap'],
+    ['rBotGap','Bot gap',14,'#retina .ret-bot','gap'],
+    ['rCtrV','Ctr valor',20,'#retina .rctr-v','font-size'],
+    ['rCtrL','Ctr label',10,'#retina .rctr-l','font-size'],
+    ['rARowPV','Aula row V',4,'#retina .rau-list .arow','padding-top'],
+    ['rARowPH','Aula row H',4,'#retina .rau-list .arow','padding-left'],
+    ['rARowFs','Aula row fs',11,'#retina .rau-list .arow','font-size'],
+    ['rQRowFs','Quest row fs',12,'#retina .rq-list .qrn','font-size'],
+    ['rRevFs','Revisão fs',10,'#retina .rrev-item','font-size'],
+  ],
+  historico:[
+    ['hRowPV','Row pad V',7,'#historico .hrow','padding-top'],
+    ['hRowPH','Row pad H',11,'#historico .hrow','padding-left'],
+    ['hRowFs','Row font',11,'#historico .hrow','font-size'],
+    ['hCardPV','Card pad V',14,'#historico .card','padding-top'],
+    ['hCardPH','Card pad H',19,'#historico .card','padding-left'],
+    ['hCardV','Card valor',28,'#historico .card .v','font-size'],
+    ['hGap','Grid gap',21,'#historico .g3','gap'],
+  ],
+};
+let SZ_VALS={};
+try{const s=localStorage.getItem('sz_vals2');if(s)SZ_VALS=JSON.parse(s);}catch(e){}
+function svSZ(){try{localStorage.setItem('sz_vals2',JSON.stringify(SZ_VALS));}catch(e){}}
+let _szTab='global';
+function szV(k,def){return SZ_VALS[k]!==undefined?SZ_VALS[k]:def;}
+function szGenCSS(){
+  let css='';
+  Object.values(SZ_DEFS).flat().forEach(([k,lbl,def,sel,prop])=>{
+    const v=szV(k,def);
+    if(!prop){
+      if(k==='sDayColW')css+=`#semana .sem-day{grid-template-columns:${v}px 1fr;min-height:100px}\n`;
+      else if(k==='sSideW')css+=`#semana .sem-wrap{grid-template-columns:1fr ${v}px}\n`;
+      else if(k==='sWrapGap')css+=`#semana .sem-wrap{gap:${v}px}\n`;
+      else if(k==='qSideW')css+=`#questoes .qlay{grid-template-columns:1fr ${v}px}\n`;
+    } else {
+      css+=`${sel}{${prop}:${v}px}\n`;
+      if(prop==='padding-top')css+=`${sel}{padding-bottom:${v}px}\n`;
+      else if(prop==='padding-left')css+=`${sel}{padding-right:${v}px}\n`;
+      else if(prop==='width')css+=`${sel}{height:${v}px}\n`;
+    }
+  });
+  return css;
+}
+function szApply(){
+  let el=document.getElementById('sz-ovr');
+  if(!el){el=document.createElement('style');el.id='sz-ovr';document.head.appendChild(el);}
+  el.textContent=szGenCSS();
+}
+function szRenderPanel(){
+  const defs=SZ_DEFS[_szTab]||[];
+  document.getElementById('sz-body').innerHTML=defs.map(([k,lbl,def])=>`<div class="sz-row"><label class="sz-lbl" title="${k}">${lbl}</label><input class="sz-inp" type="number" value="${szV(k,def)}" oninput="szSet('${k}',+this.value)"></div>`).join('');
+}
+function szSet(k,v){SZ_VALS[k]=v;svSZ();szApply();}
+function szSetTab(t){
+  _szTab=t;
+  document.querySelectorAll('.sz-tab').forEach(b=>b.classList.toggle('sz-tab-a',b.dataset.tab===t));
+  szRenderPanel();
+}
+function szReset(){
+  const defs=SZ_DEFS[_szTab]||[];
+  defs.forEach(([k,,def])=>{delete SZ_VALS[k];});
+  svSZ();szApply();szRenderPanel();
+}
+function szResetAll(){
+  if(!confirm('Resetar TODOS os tamanhos?'))return;
+  SZ_VALS={};svSZ();szApply();szRenderPanel();
+}
+// Drag
+(function(){
+  let drag=false,dx=0,dy=0;
+  document.addEventListener('DOMContentLoaded',()=>{
+    const p=document.getElementById('sz-panel');
+    const hdr=document.getElementById('sz-hdr');
+    hdr.addEventListener('mousedown',e=>{drag=true;dx=e.clientX-p.offsetLeft;dy=e.clientY-p.offsetTop;p.style.right='';e.preventDefault();});
+    document.addEventListener('mousemove',e=>{if(!drag)return;p.style.left=(e.clientX-dx)+'px';p.style.top=(e.clientY-dy)+'px';});
+    document.addEventListener('mouseup',()=>{drag=false;});
+    szApply();
+  });
+})();
+
+function semFOK(){
+  const rawAssunto=_semFSel||document.getElementById('sem-fq').value.trim();
+  if(!rawAssunto){alert('Informe o assunto.');return;}
+  const min=+document.getElementById('sem-fm').value||0;
+  if(!min){alert('Informe os minutos estudados.');return;}
+  SLOG.push({type:'flash',date:T0.toISOString().slice(0,10),assunto:rawAssunto,min});
+  svSLOG();
+  _semFSel=null;
+  document.getElementById('sem-fq').value='';
+  document.getElementById('sem-fm').value='';
+  document.getElementById('sem-fsel').style.display='none';
+  renderSemAgenda();
+  if(tBlt.flashcards)buildFlash();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina)buildRetGoals();
+}
+
+// ── SUPABASE ──────────────────────────────────────────────────────────
+const _SB=supabase.createClient(
+  'https://albnjnlkhlxlynsqwliz.supabase.co',
+  'sb_publishable_afJTFxn5ZZcqWnr4KWAD_g_n0LgUkpE'
+);
+let _sbUser=null;
+const _SB_KEYS=['slog','dc_ac','rq6_s','rq6_h','ret_flash','ret_notes','ret_goals','cal_ev'];
+const _sbDeb={};
+
+function sbSync(key,val){
+  if(!_sbUser)return;
+  clearTimeout(_sbDeb[key]);
+  _sbDeb[key]=setTimeout(async()=>{
+    sbDot('sync');
+    const{error}=await _SB.from('dashboard_data').upsert(
+      {user_id:_sbUser.id,key,value:val,updated_at:new Date().toISOString()},
+      {onConflict:'user_id,key'}
+    );
+    sbDot(error?'err':'ok');
+  },900);
+}
+
+async function sbLoad(){
+  sbDot('sync');
+  const{data,error}=await _SB.from('dashboard_data').select('key,value').eq('user_id',_sbUser.id);
+  if(error){sbDot('err');return;}
+  if(!data?.length){
+    _SB_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){}});
+    sbDot('ok');return;
+  }
+  let changed=false;
+  data.forEach(({key,value})=>{
+    const cur=localStorage.getItem(key);
+    const inc=JSON.stringify(value);
+    if(cur!==inc){localStorage.setItem(key,inc);changed=true;}
+  });
+  sbDot('ok');
+  if(changed)location.reload();
+}
+
+function sbDot(s){
+  const el=document.getElementById('sb-dot');if(!el)return;
+  const txt={ok:'☁ ok',sync:'↻…',err:'⚠ erro'};
+  const col={ok:'var(--grn)',sync:'var(--amb)',err:'var(--red)'};
+  el.textContent=txt[s]||s;el.style.color=col[s]||'var(--tx3)';
+}
+
+function sbShowErr(msg){
+  const el=document.getElementById('sb-err');
+  if(!el)return;
+  el.textContent=msg;el.style.display=msg?'block':'none';
+}
+
+function sbSetBtn(txt,disabled){
+  const b=document.getElementById('sb-login-btn');
+  if(!b)return;b.textContent=txt;b.disabled=disabled;
+}
+
+async function sbDoLogin(){
+  const email=document.getElementById('sb-em')?.value.trim();
+  const pw=document.getElementById('sb-pw')?.value;
+  if(!email||!pw){sbShowErr('Preencha email e senha.');return;}
+  sbSetBtn('entrando…',true);sbShowErr('');
+  const{error}=await _SB.auth.signInWithPassword({email,password:pw});
+  if(error){sbShowErr(error.message==='Invalid login credentials'?'Email ou senha incorretos.':error.message);sbSetBtn('entrar',false);}
+}
+
+async function sbDoSignup(){
+  const email=document.getElementById('sb-em')?.value.trim();
+  const pw=document.getElementById('sb-pw')?.value;
+  if(!email||!pw){sbShowErr('Preencha email e senha.');return;}
+  if(pw.length<6){sbShowErr('Senha precisa ter no mínimo 6 caracteres.');return;}
+  sbSetBtn('criando conta…',true);sbShowErr('');
+  const{error}=await _SB.auth.signUp({email,password:pw});
+  if(error){sbShowErr(error.message);sbSetBtn('entrar',false);}
+  else{sbShowErr('');sbSetBtn('entrar',false);
+    // tenta login imediato (quando confirmação de email está desabilitada)
+    await sbDoLogin();}
+}
+
+async function sbLogout(){
+  await _SB.auth.signOut();
+  _sbUser=null;
+  document.getElementById('sb-login-ov').style.display='flex';
+  document.getElementById('sb-auth').innerHTML='';
+  document.getElementById('sb-dot').textContent='☁';
+  document.getElementById('sb-dot').style.color='var(--tx3)';
+  // limpa os inputs da tela de login
+  const em=document.getElementById('sb-em');const pw=document.getElementById('sb-pw');
+  if(em)em.value='';if(pw)pw.value='';
+  const err=document.getElementById('sb-err');if(err)err.style.display='none';
+  const btn=document.getElementById('sb-login-btn');if(btn){btn.textContent='entrar';btn.disabled=false;}
+}
+
+function sbRenderAuth(){
+  const el=document.getElementById('sb-auth');if(!el)return;
+  const ov=document.getElementById('sb-login-ov');
+  if(_sbUser){
+    if(ov)ov.style.display='none';
+    el.innerHTML=`<span style="color:var(--tx2)">${_sbUser.email.split('@')[0]}</span>`+
+      ` <button onclick="sbLogout()" style="font-size:9px;padding:1px 5px;cursor:pointer;border:1px solid var(--bd2);border-radius:3px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">sair</button>`;
+  }else{
+    if(ov)ov.style.display='flex';
+    el.innerHTML='';
+    sbDot('');
+    document.getElementById('sb-dot').textContent='☁';
+    document.getElementById('sb-dot').style.color='var(--tx3)';
+  }
+}
+
+_SB.auth.onAuthStateChange(async(event,session)=>{
+  _sbUser=session?.user||null;
+  sbRenderAuth();
+  if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))await sbLoad();
+});
+
+_SB.auth.getSession().then(({data:{session}})=>{
+  if(session){_sbUser=session.user;sbRenderAuth();sbLoad();}
+  else{document.getElementById('sb-login-ov').style.display='flex';sbRenderAuth();}
+});
+</script>
