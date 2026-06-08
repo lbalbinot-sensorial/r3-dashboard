@@ -846,7 +846,7 @@ let CEV=[];
 try{const s=localStorage.getItem('cal_ev');if(s)CEV=JSON.parse(s);}catch(e){}
 function svCEV(){try{localStorage.setItem('cal_ev',JSON.stringify(CEV));}catch(e){}sbSync('cal_ev',CEV);}
 
-let RFLASH={metaMin:500,sessions:[]};
+let RFLASH={metaMin:6000,sessions:[]};
 try{const s=localStorage.getItem('ret_flash');if(s)RFLASH=JSON.parse(s);}catch(e){}
 function svRFLASH(){try{localStorage.setItem('ret_flash',JSON.stringify(RFLASH));}catch(e){}sbSync('ret_flash',RFLASH);}
 
@@ -1485,20 +1485,41 @@ function buildRetina(){
     </div>
     <div class="qpbar"><div class="qpfill" style="width:${rQP||0}%;background:${qCol}"></div></div>`;
   // Flashcards
-  const fTot=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  const fTot=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0)+SLOG.filter(e=>e.type==='flash'&&/retina/i.test(e.assunto||'')).reduce((s,e)=>s+(e.min||0),0);
   const fPct=RFLASH.metaMin?Math.round(fTot/RFLASH.metaMin*100):0;
   const fCol=fPct>=80?'var(--grn)':fPct>=40?'var(--amb)':'var(--red)';
+  const _rfHist=[
+    ...RFLASH.sessions.map((s,i)=>({src:'rf',idx:i,min:s.min,label:'Widget retina',dateStr:s.data})),
+    ...SLOG.map((e,i)=>({src:'sl',idx:i,min:e.min,label:(e.assunto||'').replace('zOFT - ','').replace('zOFT – ',''),dateStr:e.date}))
+      .filter(e=>SLOG[e.idx]?.type==='flash'&&/retina/i.test(SLOG[e.idx]?.assunto||''))
+  ].sort((a,b)=>{
+    const da=a.src==='rf'?a.dateStr.split('/').reverse().map((v,i)=>i===0?'20'+v:v).join('-'):a.dateStr;
+    const db=b.src==='rf'?b.dateStr.split('/').reverse().map((v,i)=>i===0?'20'+v:v).join('-'):b.dateStr;
+    return db.localeCompare(da);
+  }).slice(0,6);
+  const _rfHistHtml=_rfHist.map(e=>{
+    const ds=e.src==='rf'?e.dateStr:(e.dateStr||'').slice(5).replace('-','/');
+    const delFn=e.src==='rf'?`retFlashDelRF(${e.idx})`:`retFlashDelSL(${e.idx})`;
+    return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:10px;font-family:'Courier New',monospace;padding:2px 0;border-bottom:1px solid var(--bd)">
+      <span style="color:var(--tx3)">${ds}</span>
+      <span style="flex:1;margin:0 6px;color:var(--tx2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis">${e.label}</span>
+      <span style="color:var(--amb);margin-right:6px">${e.min}'</span>
+      <button onclick="${delFn}" style="background:none;border:none;cursor:pointer;color:var(--red);font-size:13px;line-height:1;padding:0" title="remover">×</button>
+    </div>`;
+  }).join('');
   document.getElementById('ret-flash-div').innerHTML=`
     <div class="ret-sec">Flashcards</div>
     <div class="ret-g2" style="margin-bottom:.5rem">
       <div class="wsc" style="cursor:pointer"><div class="wsf">${fTot}'</div><div class="wsl">Tempo feito</div></div>
       <div class="wsc"><div class="wsf" style="color:${fCol}">${fPct}%</div><div class="wsl">da meta (${RFLASH.metaMin}')</div></div>
     </div>
-    <div style="display:flex;gap:.5rem;align-items:center">
+    <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
       <input id="flashMin" type="number" min="1" placeholder="min" style="width:52px;background:#fff;border:1px solid var(--bd2);border-radius:4px;padding:3px 5px;font-size:12px;font-family:'Courier New',monospace;text-align:center">
       <button class="bp" onclick="addFlash()" style="padding:3px 10px;font-size:10px">+ Log</button>
       <button class="bs" onclick="setFlashMeta()" style="font-size:9px;margin-left:0">meta</button>
-    </div>`;
+    </div>
+    ${_rfHistHtml?`<div style="margin-top:2px">${_rfHistHtml}</div>`:''}`;
+
   // Revisões e alertas retina
   const retItems=retQ?[...retQ.as,...retQ.bl]:[];
   const ri2=retItems.filter(i=>{const s=qGS(i.id);return s.revDate&&!s.revDone&&Math.round((new Date(s.revDate)-T0)/86400000)<=30;}).sort((a,b)=>new Date(qGS(a.id).revDate)-new Date(qGS(b.id).revDate));
@@ -1541,7 +1562,7 @@ function buildRetCtr(){
   let rqf=0,rqt=0;
   if(retQ)[...retQ.as,...retQ.bl].forEach(i=>{const s=qGS(i.id);if(s.f)rqf+=+s.f;if(s.t)rqt+=+s.t;});
   const rqp=rqt?Math.round(rqf/rqt*100):null;
-  const fMin=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  const fMin=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0)+SLOG.filter(e=>e.type==='flash'&&/retina/i.test(e.assunto||'')).reduce((s,e)=>s+(e.min||0),0);
   el.innerHTML=`<div class="rbox-ttl">Contadores — Prova 11/11/26</div>
     <div class="rctr-row"><span class="rctr-v">${days}</span><span class="rctr-l">dias para a prova</span></div>
     <div class="rctr-row"><span class="rctr-v">${aulMin}'</span><span class="rctr-l">min de aulas restantes</span></div>
@@ -1749,7 +1770,8 @@ function retQDel(id){
 
 function buildRetFlash(){
   const el=document.getElementById('ret-flash-tab');if(!el)return;
-  const total=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0);
+  const slogRetMin=SLOG.filter(e=>e.type==='flash'&&/retina/i.test(e.assunto||'')).reduce((s,e)=>s+(e.min||0),0);
+  const total=RFLASH.sessions.reduce((s,e)=>s+(e.min||0),0)+slogRetMin;
   const metaMin=RFLASH.metaMin,metaH=Math.round(metaMin/60);
   const pct=Math.min(100,Math.round(total/metaMin*100));
   const pCol=pct>=80?'var(--grn)':pct>=40?'var(--amb)':'var(--red)';
@@ -1757,6 +1779,12 @@ function buildRetFlash(){
   RFLASH.sessions.forEach(s=>{
     const pts=s.data.split('/');
     const d=new Date(2000+parseInt(pts[2]),parseInt(pts[1])-1,parseInt(pts[0]));
+    const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
+    const wk=mon.toISOString().slice(0,10);
+    wkMap[wk]=(wkMap[wk]||0)+(s.min||0);
+  });
+  SLOG.filter(e=>e.type==='flash'&&/retina/i.test(e.assunto||'')).forEach(s=>{
+    const d=new Date(s.date+'T12:00:00');
     const mon=new Date(d);mon.setDate(d.getDate()-((d.getDay()+6)%7));
     const wk=mon.toISOString().slice(0,10);
     wkMap[wk]=(wkMap[wk]||0)+(s.min||0);
@@ -2018,6 +2046,26 @@ function flashHistDel(si){
   SLOG.splice(si,1);svSLOG();
   buildFlash();
   if(tBlt.semana)renderSemAgenda();
+  if(tBlt.historico)buildHist();
+  if(tBlt.retina){buildRetFlash();buildRetCtr();buildRetGoals();}
+  buildRetina();
+}
+function retFlashDelRF(idx){
+  if(!confirm('Remover esta sessão?'))return;
+  RFLASH.sessions.splice(idx,1);svRFLASH();
+  buildRetina();
+  if(tBlt.retina){buildRetFlash();buildRetCtr();buildRetGoals();}
+  if(tBlt.semana)renderSemAgenda();
+}
+function retFlashDelSL(si){
+  const e=SLOG[si];
+  if(!e||e.type!=='flash')return;
+  if(!confirm('Remover esta sessão?'))return;
+  SLOG.splice(si,1);svSLOG();
+  buildRetina();
+  if(tBlt.retina){buildRetFlash();buildRetCtr();buildRetGoals();}
+  if(tBlt.semana)renderSemAgenda();
+  if(tBlt.flashcards)buildFlash();
   if(tBlt.historico)buildHist();
 }
 const FLASH_DECKS=[
@@ -2380,7 +2428,7 @@ function semFOK(){
   renderSemAgenda();
   if(tBlt.flashcards)buildFlash();
   if(tBlt.historico)buildHist();
-  if(tBlt.retina)buildRetGoals();
+  if(tBlt.retina){buildRetGoals();buildRetFlash();buildRetCtr();buildRetina();}
 }
 
 // ── SUPABASE ──────────────────────────────────────────────────────────
@@ -2414,14 +2462,28 @@ async function sbLoad(){
     sbDot('ok');return;
   }
   let changed=false;
+  const sbKeys=new Set(data.map(r=>r.key));
   data.forEach(({key,value})=>{
     const cur=localStorage.getItem(key);
     const inc=JSON.stringify(value);
-    if(cur!==inc){localStorage.setItem(key,inc);changed=true;}
+    if(cur===inc)return;
+    try{
+      const localVal=cur?JSON.parse(cur):null;
+      if(Array.isArray(localVal)&&Array.isArray(value)&&localVal.length>=value.length){
+        sbSync(key,localVal);return;
+      }
+    }catch(e){}
+    localStorage.setItem(key,inc);changed=true;
   });
+  _SB_KEYS.forEach(k=>{if(!sbKeys.has(k)){const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){};}});
   sbDot('ok');
   if(changed)location.reload();
 }
+function sbPushAll(){
+  if(!_sbUser)return;
+  _SB_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){}});
+}
+setInterval(sbPushAll,5*60*1000);
 
 function sbDot(s){
   const el=document.getElementById('sb-dot');if(!el)return;
@@ -2496,7 +2558,7 @@ function sbRenderAuth(){
 _SB.auth.onAuthStateChange(async(event,session)=>{
   _sbUser=session?.user||null;
   sbRenderAuth();
-  if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))await sbLoad();
+  if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')){sbPushAll();await sbLoad();}
 });
 
 _SB.auth.getSession().then(({data:{session}})=>{
