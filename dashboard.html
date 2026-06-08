@@ -985,6 +985,7 @@ function buildGrade(){
 const qGS=id=>QS[id]||{f:'',t:'',done:false,rh:[]};
 const qAll=()=>{const a=[];Q_MODS.forEach(m=>[...m.as,...m.bl].forEach(i=>a.push({...i,ib:m.bl.some(b=>b.id===i.id)})));return a;};
 const qGlb=id=>{for(const m of Q_MODS){for(const a of m.as)if(a.id===id)return m.lb+' · '+a.n;for(const b of m.bl)if(b.id===id)return m.lb+' · '+b.n;}return id;};
+const qRevLb=id=>{for(const m of Q_MODS){const b=m.bl.find(b=>b.id===id);if(b){const num=parseInt(b.n.replace(/\D/g,''));const sh=m.lb.split(/[\s,\/]/)[0];return'S'+num+' '+sh;}const a=m.as.find(a=>a.id===id);if(a)return a.n;}return id;};
 const qRD=p=>p<0.70?7:p>=0.80?30:14;
 const qPC=p=>p===null?'':p>=80?'h':p>=61?'m':'vl';
 const qPCol=p=>p>=80?'var(--grn)':p>=61?'var(--amb)':'var(--red)';
@@ -1139,7 +1140,7 @@ function qConc(id){
   if(tBlt.historico)buildHist();
   if(tBlt.retina){buildRetGoals();buildRetRev();}
   // Scheduling dialog
-  const _qschedLb=qGlb(id).split(' · ').pop();
+  const _qschedLb=qRevLb(id);
   const _rv=aDD(T0,rd);
   const _rvStr=_rv.toISOString().slice(0,10);
   document.getElementById('schedTit').textContent='Revisão agendada — '+_qschedLb;
