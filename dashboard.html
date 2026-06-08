@@ -2454,31 +2454,51 @@ function sbSync(key,val){
   },900);
 }
 
+async function _sbUpsert(k,v){
+  return _SB.from('dashboard_data').upsert(
+    {user_id:_sbUser.id,key:k,value:v,updated_at:new Date().toISOString()},
+    {onConflict:'user_id,key'}
+  );
+}
 async function sbLoad(){
   sbDot('sync');
   const{data,error}=await _SB.from('dashboard_data').select('key,value').eq('user_id',_sbUser.id);
   if(error){sbDot('err');return;}
-  if(!data?.length){
-    _SB_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){}});
-    sbDot('ok');return;
-  }
-  let changed=false;
-  const sbKeys=new Set(data.map(r=>r.key));
-  data.forEach(({key,value})=>{
-    const cur=localStorage.getItem(key);
-    const inc=JSON.stringify(value);
-    if(cur===inc)return;
-    try{
-      const localVal=cur?JSON.parse(cur):null;
-      if(Array.isArray(localVal)&&Array.isArray(value)&&localVal.length>=value.length){
-        sbSync(key,localVal);return;
+  const sbMap={};
+  (data||[]).forEach(({key,value})=>sbMap[key]=value);
+  const toUpload=[];
+  const toDownload=[];
+  for(const k of _SB_KEYS){
+    const localStr=localStorage.getItem(k);
+    const sbVal=sbMap[k];
+    const localVal=localStr?JSON.parse(localStr):null;
+    if(!localVal&&sbVal){
+      // dispositivo novo — puxa do Supabase
+      toDownload.push({k,v:sbVal});
+    } else if(localVal&&!sbVal){
+      // só local — sobe
+      toUpload.push({k,v:localVal});
+    } else if(localVal&&sbVal){
+      if(Array.isArray(localVal)&&Array.isArray(sbVal)){
+        if(sbVal.length>localVal.length) toDownload.push({k,v:sbVal});
+        else if(localVal.length>sbVal.length) toUpload.push({k,v:localVal});
+        // iguais: nada
+      } else {
+        // não-array: local é autoridade (dispositivo primário)
+        if(JSON.stringify(localVal)!==JSON.stringify(sbVal)) toUpload.push({k,v:localVal});
       }
-    }catch(e){}
-    localStorage.setItem(key,inc);changed=true;
-  });
-  _SB_KEYS.forEach(k=>{if(!sbKeys.has(k)){const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){};}});
+    }
+  }
+  // sobe primeiro (sem debounce, aguarda conclusão)
+  if(toUpload.length) await Promise.all(toUpload.map(({k,v})=>_sbUpsert(k,v)));
+  // depois atualiza local e recarrega se necessário
+  if(toDownload.length){
+    toDownload.forEach(({k,v})=>localStorage.setItem(k,JSON.stringify(v)));
+    sbDot('ok');
+    location.reload();
+    return;
+  }
   sbDot('ok');
-  if(changed)location.reload();
 }
 function sbPushAll(){
   if(!_sbUser)return;
@@ -2490,33 +2510,14 @@ async function sbManualSync(){
   if(!_sbUser){alert('Faça login para sincronizar.');return;}
   if(btn){btn.textContent='↑ …';btn.disabled=true;}
   sbDot('sync');
-  const{data,error}=await _SB.from('dashboard_data').select('key,value').eq('user_id',_sbUser.id);
-  if(error){sbDot('err');if(btn){btn.textContent='↑ sync';btn.disabled=false;}return;}
-  const sbMap={};
-  (data||[]).forEach(({key,value})=>sbMap[key]=value);
-  let needsReload=false;
-  for(const k of _SB_KEYS){
-    const localStr=localStorage.getItem(k);
-    const sbVal=sbMap[k];
-    const localVal=localStr?JSON.parse(localStr):null;
-    if(Array.isArray(localVal)&&Array.isArray(sbVal)){
-      if(localVal.length>sbVal.length){
-        await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
-      } else if(sbVal.length>localVal.length){
-        localStorage.setItem(k,JSON.stringify(sbVal));needsReload=true;
-      }
-    } else if(!localVal&&sbVal){
-      localStorage.setItem(k,JSON.stringify(sbVal));needsReload=true;
-    } else if(localVal&&!sbVal){
-      await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
-    } else if(localVal&&sbVal){
-      const ls=JSON.stringify(localVal),ss=JSON.stringify(sbVal);
-      if(ls!==ss)await _SB.from('dashboard_data').upsert({user_id:_sbUser.id,key:k,value:localVal,updated_at:new Date().toISOString()},{onConflict:'user_id,key'});
-    }
-  }
-  sbDot('ok');
+  try{
+    await Promise.all(_SB_KEYS.map(async k=>{
+      const v=localStorage.getItem(k);if(!v)return;
+      await _sbUpsert(k,JSON.parse(v));
+    }));
+    sbDot('ok');
+  }catch(e){sbDot('err');}
   if(btn){btn.textContent='↑ sync';btn.disabled=false;}
-  if(needsReload)location.reload();
 }
 
 function sbDot(s){
@@ -2592,7 +2593,7 @@ function sbRenderAuth(){
 _SB.auth.onAuthStateChange(async(event,session)=>{
   _sbUser=session?.user||null;
   sbRenderAuth();
-  if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED')){sbPushAll();await sbLoad();}
+  if(_sbUser&&(event==='SIGNED_IN'||event==='TOKEN_REFRESHED'))await sbLoad();
 });
 
 _SB.auth.getSession().then(({data:{session}})=>{
