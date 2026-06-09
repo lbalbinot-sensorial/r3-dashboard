@@ -2597,6 +2597,16 @@ async function sbDoSignup(){
 }
 
 async function sbLogout(){
+  const sairBtn=document.getElementById('sb-sair-btn');
+  if(sairBtn){sairBtn.textContent='salvando…';sairBtn.disabled=true;}
+  sbDot('sync');
+  try{
+    await Promise.all(_SB_KEYS.map(async k=>{
+      const v=localStorage.getItem(k);if(!v)return;
+      await _sbUpsert(k,JSON.parse(v)).catch(()=>{});
+    }));
+  }catch(e){}
+  sbDot('ok');
   try{await _SB.auth.signOut();}catch(e){}
   _sbUser=null;_sbToken=null;
   document.getElementById('sb-login-ov').style.display='flex';
@@ -2615,7 +2625,7 @@ function sbRenderAuth(){
   if(_sbUser){
     if(ov)ov.style.display='none';
     el.innerHTML=`<span style="color:var(--tx2)">${_sbUser.email.split('@')[0]}</span>`+
-      ` <button onclick="sbLogout()" style="font-size:9px;padding:1px 5px;cursor:pointer;border:1px solid var(--bd2);border-radius:3px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">sair</button>`;
+      ` <button id="sb-sair-btn" onclick="sbLogout()" style="font-size:9px;padding:1px 5px;cursor:pointer;border:1px solid var(--bd2);border-radius:3px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">sair</button>`;
   }else{
     if(ov)ov.style.display='flex';
     el.innerHTML='';
