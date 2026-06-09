@@ -2601,10 +2601,13 @@ async function sbLogout(){
   if(sairBtn){sairBtn.textContent='salvando…';sairBtn.disabled=true;}
   sbDot('sync');
   try{
-    await Promise.all(_SB_KEYS.map(async k=>{
-      const v=localStorage.getItem(k);if(!v)return;
-      await _sbUpsert(k,JSON.parse(v)).catch(()=>{});
-    }));
+    await Promise.race([
+      Promise.all(_SB_KEYS.map(async k=>{
+        const v=localStorage.getItem(k);if(!v)return;
+        await _sbUpsert(k,JSON.parse(v)).catch(()=>{});
+      })),
+      new Promise(r=>setTimeout(r,8000))
+    ]);
   }catch(e){}
   sbDot('ok');
   try{await _SB.auth.signOut();}catch(e){}
