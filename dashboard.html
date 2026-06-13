@@ -2606,7 +2606,11 @@ async function sbLogout(){
     ]);
   }catch(e){}
   _SB_KEYS.forEach(k=>localStorage.removeItem(k));
-  location.reload();
+  _sbUser=null;_sbToken=null;
+  sbRenderAuth();
+  const em=document.getElementById('sb-em');const pw=document.getElementById('sb-pw');
+  if(em)em.value='';if(pw)pw.value='';
+  const err=document.getElementById('sb-err');if(err)err.style.display='none';
 }
 
 function sbRenderAuth(){
