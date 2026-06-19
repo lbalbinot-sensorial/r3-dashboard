@@ -393,6 +393,8 @@ body{padding:14px}
     <div id="sb-auth"></div>
     <button onclick="document.getElementById('sz-panel').classList.toggle('open');if(document.getElementById('sz-panel').classList.contains('open'))szRenderPanel()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd2);border-radius:4px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">⊞ tamanhos</button>
     <button id="sync-btn" onclick="sbManualSync()" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd2);border-radius:4px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">↑ sync</button>
+    <button onclick="sbExportBackup()" title="Baixar backup local de todos os dados" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd2);border-radius:4px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">↓ backup</button>
+    <button onclick="sbImportBackup()" title="Restaurar dados de um arquivo de backup" style="font-size:9px;padding:2px 8px;cursor:pointer;border:1px solid var(--bd2);border-radius:4px;background:var(--sf);color:var(--tx3);font-family:'Courier New',monospace">↑ importar</button>
   </div>
   <div class="frase-mot" id="frase-mot"></div>
 </div>
@@ -2465,10 +2467,26 @@ async function _sbUpsert(k,v){
   );
   if(!res.ok){const t=await res.text();throw new Error(k+': '+t);}
 }
+function _sbSize(v){
+  if(v==null) return 0;
+  if(Array.isArray(v)) return v.length;
+  if(typeof v==='object') return Object.keys(v).length;
+  return 1;
+}
 async function sbLoad(){
   sbDot('sync');
-  const{data,error}=await _SB.from('dashboard_data').select('key,value').eq('user_id',_sbUser.id);
-  if(error){sbDot('err');return;}
+  let data;
+  try{
+    const deadline=new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout 10s')),10000));
+    const res=await Promise.race([
+      fetch('https://albnjnlkhlxlynsqwliz.supabase.co/rest/v1/dashboard_data?select=key,value',{
+        headers:{'apikey':'sb_publishable_afJTFxn5ZZcqWnr4KWAD_g_n0LgUkpE','Authorization':'Bearer '+_sbToken}
+      }),
+      deadline
+    ]);
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    data=await res.json();
+  }catch(e){sbDot('err');console.error('sbLoad erro:',e.message);return;}
   const sbMap={};
   (data||[]).forEach(({key,value})=>sbMap[key]=value);
   const toUpload=[];
@@ -2482,12 +2500,10 @@ async function sbLoad(){
     } else if(localVal&&!sbVal){
       toUpload.push({k,v:localVal});
     } else if(localVal&&sbVal){
-      if(Array.isArray(localVal)&&Array.isArray(sbVal)){
-        if(sbVal.length>localVal.length) toDownload.push({k,v:sbVal});
-        else if(localVal.length>sbVal.length) toUpload.push({k,v:localVal});
-      } else {
-        if(JSON.stringify(localVal)!==JSON.stringify(sbVal)) toUpload.push({k,v:localVal});
-      }
+      const ls=_sbSize(localVal),ss=_sbSize(sbVal);
+      if(ss>ls) toDownload.push({k,v:sbVal});
+      else if(ls>ss) toUpload.push({k,v:localVal});
+      else if(JSON.stringify(localVal)!==JSON.stringify(sbVal)) toUpload.push({k,v:localVal});
     }
   }
   // sobe cada chave independentemente para não bloquear as demais em caso de erro
@@ -2507,6 +2523,37 @@ function sbPushAll(){
   _SB_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v)try{sbSync(k,JSON.parse(v));}catch(e){}});
 }
 setInterval(sbPushAll,5*60*1000);
+
+function sbExportBackup(){
+  const out={};
+  _SB_KEYS.forEach(k=>{const v=localStorage.getItem(k);if(v)try{out[k]=JSON.parse(v);}catch(e){}});
+  const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='r3-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+function sbImportBackup(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.json';
+  inp.onchange=async e=>{
+    const f=e.target.files[0];if(!f)return;
+    try{
+      const obj=JSON.parse(await f.text());
+      let count=0;
+      for(const k of _SB_KEYS){
+        if(obj[k]!==undefined){localStorage.setItem(k,JSON.stringify(obj[k]));count++;}
+      }
+      if(_sbUser){
+        const errs=[];
+        await Promise.all(_SB_KEYS.map(k=>{const v=localStorage.getItem(k);if(v)return _sbUpsert(k,JSON.parse(v)).catch(e=>errs.push(k));return Promise.resolve();}));
+      }
+      alert(count+' chaves restauradas. Recarregando…');location.reload();
+    }catch(e){alert('Erro ao importar: '+e.message);}
+  };
+  inp.click();
+}
 async function sbManualSync(){
   const btn=document.getElementById('sync-btn');
   if(!_sbUser){alert('Faça login para sincronizar.');return;}
